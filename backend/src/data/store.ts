@@ -1,14 +1,11 @@
-const quizzesKey = 'backend-study-quizzes';
-const progressKey = 'backend-study-progress';
-
-type Question = {
+export type Question = {
   id: string;
   text: string;
   answer: string;
   explanation?: string;
 };
 
-type Quiz = {
+export type Quiz = {
   id: string;
   title: string;
   subject: string;
@@ -17,96 +14,57 @@ type Quiz = {
   questions: Question[];
 };
 
-type ProgressRecord = {
-  quizId: string;
-  completed: number;
-  total: number;
-  correct: number;
-  streak: number;
-  lastPlayed: string;
-};
-
-const defaultQuizzes: Quiz[] = [
+export const defaultQuizzes: Quiz[] = [
   {
     id: 'small-math-1',
-    title: 'たし算チャレンジ',
-    subject: '算数',
-    grade: '小学校',
-    description: '小学校算数の基本的なたし算問題です。',
+    title: 'Addition Sprint',
+    subject: 'Arithmetic',
+    grade: 'Elementary',
+    description: 'Warm up with quick one-digit addition.',
     questions: [
-      { id: 'q1', text: '3 + 5 = ?', answer: '8' },
-      { id: 'q2', text: '7 + 2 = ?', answer: '9' },
-      { id: 'q3', text: '6 + 4 = ?', answer: '10' },
+      { id: 'q1', text: '3 + 5 = ?', answer: '8', explanation: '3 plus 5 makes 8.' },
+      { id: 'q2', text: '7 + 2 = ?', answer: '9', explanation: 'Count two steps after 7: 8, 9.' },
+      { id: 'q3', text: '6 + 4 = ?', answer: '10', explanation: '6 and 4 are a pair that makes 10.' },
     ],
   },
   {
     id: 'small-math-2',
-    title: 'ひき算レンジャー',
-    subject: '算数',
-    grade: '小学校',
-    description: '小学校のひき算をマスターしよう。',
+    title: 'Subtraction Ranger',
+    subject: 'Arithmetic',
+    grade: 'Elementary',
+    description: 'Practice taking away small numbers with confidence.',
     questions: [
-      { id: 'q4', text: '10 - 3 = ?', answer: '7', explanation: '10から3を引くと7です。' },
-      { id: 'q5', text: '14 - 5 = ?', answer: '9', explanation: '14から5を引くと9です。' },
-      { id: 'q6', text: '8 - 2 = ?', answer: '6', explanation: '8から2を引くと6です。' },
+      { id: 'q4', text: '10 - 3 = ?', answer: '7', explanation: 'Take 3 away from 10 to get 7.' },
+      { id: 'q5', text: '14 - 5 = ?', answer: '9', explanation: '14 minus 5 is 9.' },
+      { id: 'q6', text: '8 - 2 = ?', answer: '6', explanation: 'Two less than 8 is 6.' },
     ],
   },
   {
     id: 'small-math-3',
-    title: 'かけざんマスター',
-    subject: '算数',
-    grade: '小学校',
-    description: '九九を使ってかけざんに挑戦しよう。',
+    title: 'Multiplication Master',
+    subject: 'Arithmetic',
+    grade: 'Elementary',
+    description: 'Build rhythm with small multiplication facts.',
     questions: [
-      { id: 'q7', text: '3 × 4 = ?', answer: '12', explanation: '3を4つ分足すと12です。' },
-      { id: 'q8', text: '6 × 2 = ?', answer: '12', explanation: '6を2つ分足すと12です。' },
-      { id: 'q9', text: '7 × 3 = ?', answer: '21', explanation: '7を3つ分足すと21です。' },
+      { id: 'q7', text: '3 x 4 = ?', answer: '12', explanation: '3 groups of 4 make 12.' },
+      { id: 'q8', text: '6 x 2 = ?', answer: '12', explanation: 'Doubling 6 gives 12.' },
+      { id: 'q9', text: '7 x 3 = ?', answer: '21', explanation: '7 + 7 + 7 = 21.' },
     ],
   },
   {
     id: 'small-math-4',
-    title: 'わりざんチャレンジ',
-    subject: '算数',
-    grade: '小学校',
-    description: 'わりざんの問題で答えを選ぼう。',
+    title: 'Division Trail',
+    subject: 'Arithmetic',
+    grade: 'Elementary',
+    description: 'Split numbers into equal groups.',
     questions: [
-      { id: 'q10', text: '12 ÷ 3 = ?', answer: '4', explanation: '12を3人で分けると1人あたり4です。' },
-      { id: 'q11', text: '15 ÷ 5 = ?', answer: '3', explanation: '15を5人で分けると1人あたり3です。' },
-      { id: 'q12', text: '18 ÷ 6 = ?', answer: '3', explanation: '18を6人で分けると1人あたり3です。' },
+      { id: 'q10', text: '12 / 3 = ?', answer: '4', explanation: '12 split into 3 equal groups gives 4 in each.' },
+      { id: 'q11', text: '15 / 5 = ?', answer: '3', explanation: '15 split into 5 equal groups gives 3 in each.' },
+      { id: 'q12', text: '18 / 6 = ?', answer: '3', explanation: '18 split into 6 equal groups gives 3 in each.' },
     ],
   },
 ];
 
-function readData<T>(key: string, fallback: T): T {
-  const text = process.env.NODE_ENV === 'test' ? null : undefined; // avoid blank
-  return fallback;
-}
-
 export function getQuizzes(): Quiz[] {
   return defaultQuizzes;
-}
-
-export function getQuizById(id: string): Quiz | undefined {
-  return defaultQuizzes.find((quiz) => quiz.id === id);
-}
-
-export function saveQuiz(quiz: Quiz): Quiz {
-  defaultQuizzes.push(quiz);
-  return quiz;
-}
-
-const progressRecords: ProgressRecord[] = [];
-
-export function getProgress(): ProgressRecord[] {
-  return progressRecords;
-}
-
-export function saveProgressRecord(record: ProgressRecord): ProgressRecord {
-  const index = progressRecords.findIndex((item) => item.quizId === record.quizId);
-  if (index >= 0) {
-    progressRecords[index] = record;
-  } else {
-    progressRecords.push(record);
-  }
-  return record;
 }

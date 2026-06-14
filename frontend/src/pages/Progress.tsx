@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { ProgressRecord, Quiz } from '../types';
+import { getAccuracy, getBestRecord, getTotals } from '../utils/chartHelpers';
 
 function Progress() {
   const [records, setRecords] = useState<ProgressRecord[]>([]);
@@ -12,10 +13,11 @@ function Progress() {
     setIsLoading(true);
     setErrorMessage('');
     try {
-      setQuizzes(await fetchQuizzes());
-      setRecords(await fetchProgress());
-    } catch (error) {
-      setErrorMessage('進捗の取得中に問題が発生しました。');
+      const [quizData, progressData] = await Promise.all([fetchQuizzes(), fetchProgress()]);
+      setQuizzes(quizData);
+      setRecords(progressData);
+    } catch {
+      setErrorMessage('Progress could not be loaded.');
     } finally {
       setIsLoading(false);
     }
@@ -25,52 +27,69 @@ function Progress() {
     loadProgressData();
   }, [loadProgressData]);
 
-  const progressWithQuiz = records.map((record) => ({
+  const progressWithQuiz = useMemo(() => records.map((record) => ({
     record,
     quiz: quizzes.find((quiz) => quiz.id === record.quizId),
-  }));
-
-  const badge = progressWithQuiz.reduce((best, item) => {
-    const score = item.record.correct / item.record.total;
-    if (score > best.score) {
-      return { score, title: item.quiz?.title ?? 'クイズ', record: item.record };
-    }
-    return best;
-  }, { score: 0, title: '未達成', record: null as ProgressRecord | null });
+  })), [quizzes, records]);
+  const totals = getTotals(records);
+  const best = getBestRecord(records, quizzes);
 
   return (
-    <section>
+    <section className="page-stack">
       <div className="panel">
         <div className="challenge-header">
           <div>
-            <h2>進捗ダッシュボード</h2>
-            <p>解いたクイズの結果と連続正解コンボを確認できます。</p>
+            <p className="eyebrow">Progress</p>
+            <h2>Practice dashboard</h2>
+            <p>Review your latest quiz results and streaks.</p>
           </div>
           <button className="button secondary" onClick={loadProgressData} disabled={isLoading}>
-            {isLoading ? '読み込み中…' : '最新の進捗を取得'}
+            {isLoading ? 'Loading...' : 'Refresh'}
           </button>
         </div>
         {errorMessage && <p className="feedback">{errorMessage}</p>}
+        <div className="stat-grid">
+          <div className="stat-card">
+            <span>Completed</span>
+            <strong>{records.length}</strong>
+          </div>
+          <div className="stat-card">
+            <span>Accuracy</span>
+            <strong>{getAccuracy(totals.correct, totals.total)}%</strong>
+          </div>
+          <div className="stat-card">
+            <span>Best streak</span>
+            <strong>{totals.bestStreak}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="panel">
         {isLoading ? (
-          <p>進捗を読み込み中です...</p>
+          <p>Loading progress...</p>
         ) : records.length === 0 ? (
-          <p>まだプレイした問題がありません。クイズ一覧から挑戦しましょう。</p>
+          <p>No completed quizzes yet. Start from the quiz list.</p>
         ) : (
           <div className="progress-grid">
             {progressWithQuiz.map((item) => (
               <article key={item.record.quizId} className="card small-card">
-                <h3>{item.quiz?.title ?? 'クイズ'}</h3>
-                <p>正解: {item.record.correct} / {item.record.total}</p>
-                <p>連続正解: {item.record.streak}</p>
-                <p>最終更新: {new Date(item.record.lastPlayed).toLocaleString()}</p>
+                <div className="card-header">
+                  <span className="tag">{getAccuracy(item.record.correct, item.record.total)}%</span>
+                  <span className="tag muted">Streak {item.record.streak}</span>
+                </div>
+                <h3>{item.quiz?.title ?? 'Quiz'}</h3>
+                <p>Correct: {item.record.correct} / {item.record.total}</p>
+                <p>Last played: {new Date(item.record.lastPlayed).toLocaleString()}</p>
               </article>
             ))}
           </div>
         )}
-        <div className="panel badge-panel">
-          <h3>今日のバッジ</h3>
-          <p>{badge.title} でベストスコアを獲得しました。</p>
-        </div>
+      </div>
+
+      <div className="panel badge-panel">
+        <p className="eyebrow">Best run</p>
+        <h3>{best?.title ?? 'No badge yet'}</h3>
+        <p>{best ? `${best.accuracy}% accuracy with a streak of ${best.record.streak}.` : 'Complete a quiz to earn your first badge.'}</p>
       </div>
     </section>
   );

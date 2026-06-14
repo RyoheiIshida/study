@@ -1,5 +1,5 @@
-export type Subject = '算数' | '数学' | '英語';
-export type Grade = '小学校' | '中学校';
+export type Subject = 'Arithmetic' | 'Math' | 'English';
+export type Grade = 'Elementary' | 'Middle School';
 
 export type QuizDifficulty = 'Easy' | 'Normal' | 'Hard';
 
@@ -11,6 +11,20 @@ export interface Question {
   explanation?: string;
 }
 
+export interface AuthUser {
+  username: string;
+}
+
+export interface AuthCredentials {
+  username: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AuthUser;
+}
+
 export interface Quiz {
   id: string;
   title: string;
@@ -18,6 +32,7 @@ export interface Quiz {
   grade: Grade;
   description: string;
   questions: Question[];
+  createdAt?: string;
 }
 
 export interface ProgressRecord {

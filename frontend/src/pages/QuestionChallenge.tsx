@@ -3,6 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { fetchQuizById, saveProgress } from '../api/quiz';
 import { GameState, ProgressRecord, Quiz } from '../types';
 import ScoreCard from '../components/ScoreCard';
+import TimerDisplay from '../components/TimerDisplay';
+
+const QUESTION_SECONDS = 30;
 
 const initialState: GameState = {
   currentQuestionIndex: 0,
@@ -10,7 +13,7 @@ const initialState: GameState = {
   streak: 0,
   score: 0,
   finished: false,
-  message: '準備ができたらスタート！',
+  message: 'Ready when you are.',
 };
 
 function QuestionChallenge() {
@@ -19,6 +22,9 @@ function QuestionChallenge() {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [state, setState] = useState<GameState>(initialState);
   const [feedback, setFeedback] = useState('');
+  const [lastExplanation, setLastExplanation] = useState('');
+  const [secondsLeft, setSecondsLeft] = useState(QUESTION_SECONDS);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
 
   useEffect(() => {
     if (!quizId) return;
@@ -38,25 +44,29 @@ function QuestionChallenge() {
     if (currentQuestion.options && currentQuestion.options.length >= 4) {
       return currentQuestion.options;
     }
+
+    const answerNumber = Number(currentQuestion.answer);
     const base = new Set<string>([currentQuestion.answer]);
-    const candidates = currentQuestion.answer.match(/\d+/g)?.map(Number) ?? [];
     while (base.size < 4) {
-      const value = candidates.length > 0 ? (candidates[0] + Math.floor(Math.random() * 5) - 2) : Math.floor(Math.random() * 12) + 1;
-      base.add(String(value));
+      if (Number.isFinite(answerNumber)) {
+        base.add(String(Math.max(0, answerNumber + base.size - 2)));
+      } else {
+        base.add(`Option ${base.size + 1}`);
+      }
     }
-    return Array.from(base).sort(() => Math.random() - 0.5);
+    return Array.from(base).sort((a, b) => a.localeCompare(b));
   }, [currentQuestion]);
 
-  const handleAnswer = (option: string) => {
-    if (!quiz || !currentQuestion) return;
-    const correct = option.trim() === currentQuestion.answer.trim();
+  function submitAnswer(option: string, timedOut = false) {
+    if (!quiz || !currentQuestion || state.finished) return;
+    const correct = !timedOut && option.trim() === currentQuestion.answer.trim();
 
     setState((prev) => {
       const streak = correct ? prev.streak + 1 : 0;
-      const score = prev.score + (correct ? 100 + streak * 20 : 0);
+      const score = prev.score + (correct ? 100 + streak * 20 + secondsLeft : 0);
       const nextIndex = prev.currentQuestionIndex + 1;
       const finished = nextIndex >= quiz.questions.length;
-      const message = correct ? '正解！コンボ継続中！' : `ちょっとちがうね。答えは ${currentQuestion.answer}`;
+      const message = correct ? 'Correct. Keep the rhythm going.' : `Answer: ${currentQuestion.answer}`;
       return {
         currentQuestionIndex: nextIndex,
         correctCount: prev.correctCount + (correct ? 1 : 0),
@@ -66,13 +76,30 @@ function QuestionChallenge() {
         message,
       };
     });
-    setFeedback(correct ? '正解！' : `不正解。答えは ${currentQuestion.answer}`);
-  };
 
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+    setFeedback(correct ? 'Correct' : timedOut ? `Time is up. Answer: ${currentQuestion.answer}` : `Not quite. Answer: ${currentQuestion.answer}`);
+    setLastExplanation(currentQuestion.explanation ?? '');
+    setSecondsLeft(QUESTION_SECONDS);
+  }
 
   useEffect(() => {
-    if (!quiz || !state.finished) return;
+    if (state.finished || !currentQuestion) return;
+    const timer = window.setInterval(() => {
+      setSecondsLeft((value) => {
+        if (value <= 1) {
+          window.clearInterval(timer);
+          submitAnswer('', true);
+          return QUESTION_SECONDS;
+        }
+        return value - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [currentQuestion, state.finished]);
+
+  useEffect(() => {
+    if (!quiz || !state.finished || saveStatus !== 'idle') return;
 
     const record: ProgressRecord = {
       quizId: quiz.id,
@@ -94,10 +121,10 @@ function QuestionChallenge() {
     }
 
     persistProgress();
-  }, [quiz, state.finished, state.correctCount, state.streak]);
+  }, [quiz, saveStatus, state.correctCount, state.finished, state.streak]);
 
   if (!quiz) {
-    return <p>問題を読み込み中です...</p>;
+    return <p>Loading quiz...</p>;
   }
 
   return (
@@ -105,50 +132,56 @@ function QuestionChallenge() {
       <div className="panel challenge-panel">
         <div className="challenge-header">
           <div>
+            <p className="eyebrow">Challenge</p>
             <h2>{quiz.title}</h2>
             <p>{quiz.description}</p>
           </div>
-          <ScoreCard score={state.score} streak={state.streak} correctCount={state.correctCount} total={quiz.questions.length} />
+          <div className="challenge-aside">
+            <ScoreCard score={state.score} streak={state.streak} correctCount={state.correctCount} total={quiz.questions.length} />
+            {!state.finished && <TimerDisplay secondsLeft={secondsLeft} totalSeconds={QUESTION_SECONDS} />}
+          </div>
         </div>
 
         {state.finished ? (
           <div className="result-card">
-            <h3>チャレンジ完了！</h3>
+            <p className="eyebrow">Complete</p>
+            <h3>{state.correctCount} of {quiz.questions.length} correct</h3>
             <p>{state.message}</p>
-            <p>正解数: {state.correctCount} / {quiz.questions.length}</p>
-            <p>最終スコア: {state.score}</p>
-            {saveStatus === 'saving' && <p>進捗を保存中です...</p>}
-            {saveStatus === 'saved' && <p className="feedback">進捗を保存しました！</p>}
-            {saveStatus === 'failed' && <p className="feedback">進捗の保存に失敗しました。ネットワークを確認してください。</p>}
-            <button className="button" onClick={() => navigate('/progress')} disabled={saveStatus === 'saving'}>
-              進捗を見る
-            </button>
-            <button className="button secondary" onClick={() => window.location.reload()}>
-              再挑戦
-            </button>
+            <p>Final score: {state.score}</p>
+            {saveStatus === 'saving' && <p>Saving progress...</p>}
+            {saveStatus === 'saved' && <p className="feedback">Progress saved.</p>}
+            {saveStatus === 'failed' && <p className="feedback">Progress could not be saved. Check the API connection.</p>}
+            <div className="challenge-actions centered">
+              <button className="button" onClick={() => navigate('/progress')} disabled={saveStatus === 'saving'}>
+                View progress
+              </button>
+              <button className="button secondary" onClick={() => window.location.reload()}>
+                Try again
+              </button>
+            </div>
           </div>
         ) : currentQuestion ? (
           <div className="challenge-form">
             <div className="question-card">
-              <h3>問題 {state.currentQuestionIndex + 1}</h3>
-              <p>{currentQuestion.text}</p>
+              <p className="eyebrow">Question {state.currentQuestionIndex + 1} of {quiz.questions.length}</p>
+              <h3>{currentQuestion.text}</h3>
             </div>
             <div className="answer-buttons">
               {answerOptions.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className="button option-button"
-                  onClick={() => handleAnswer(option)}
-                >
+                <button key={option} type="button" className="option-button" onClick={() => submitAnswer(option)}>
                   {option}
                 </button>
               ))}
             </div>
             <div className="challenge-actions">
-              <button type="button" className="button secondary" onClick={() => navigate('/')}>一覧へ戻る</button>
+              <button type="button" className="button secondary" onClick={() => navigate('/')}>Back to quizzes</button>
             </div>
-            {feedback && <p className="feedback">{feedback}</p>}
+            {feedback && (
+              <div className="feedback-panel">
+                <p className="feedback">{feedback}</p>
+                {lastExplanation && <p>{lastExplanation}</p>}
+              </div>
+            )}
           </div>
         ) : null}
       </div>

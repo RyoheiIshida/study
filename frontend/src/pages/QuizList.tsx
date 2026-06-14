@@ -3,25 +3,28 @@ import { useEffect, useState } from 'react';
 import { useQuizStore } from '../hooks/useQuizStore';
 import { Grade, Subject } from '../types';
 
-const subjectOptions: Subject[] = ['算数', '数学', '英語'];
-const gradeOptions: Grade[] = ['小学校', '中学校'];
+const subjectOptions: Subject[] = ['Arithmetic', 'Math', 'English'];
+const gradeOptions: Grade[] = ['Elementary', 'Middle School'];
 
 function QuizList() {
   const { quizzes, isLoading, refreshQuizzes } = useQuizStore();
-  const [selectedSubject, setSelectedSubject] = useState<Subject>('算数');
-  const [selectedGrade, setSelectedGrade] = useState<Grade>('小学校');
+  const [selectedSubject, setSelectedSubject] = useState<Subject>('Arithmetic');
+  const [selectedGrade, setSelectedGrade] = useState<Grade>('Elementary');
 
   useEffect(() => {
     refreshQuizzes(selectedSubject, selectedGrade);
   }, [refreshQuizzes, selectedSubject, selectedGrade]);
 
   return (
-    <section>
+    <section className="page-stack">
       <div className="panel filter-panel">
-        <h2>問題のテーマ</h2>
+        <div>
+          <p className="eyebrow">Quiz deck</p>
+          <h2>Choose a focused practice set</h2>
+        </div>
         <div className="filters">
           <label>
-            科目
+            Subject
             <select value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value as Subject)}>
               {subjectOptions.map((subject) => (
                 <option key={subject} value={subject}>{subject}</option>
@@ -29,35 +32,42 @@ function QuizList() {
             </select>
           </label>
           <label>
-            学年
+            Grade
             <select value={selectedGrade} onChange={(event) => setSelectedGrade(event.target.value as Grade)}>
               {gradeOptions.map((grade) => (
                 <option key={grade} value={grade}>{grade}</option>
               ))}
             </select>
           </label>
-          <Link to="/progress" className="button secondary">進捗を確認</Link>
+          <Link to="/analytics" className="button secondary">View analytics</Link>
         </div>
       </div>
 
       <div className="panel">
-        <h2>クイズ一覧</h2>
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Available now</p>
+            <h2>Quizzes</h2>
+          </div>
+          <Link to="/progress" className="text-link">Progress log</Link>
+        </div>
         {isLoading ? (
-          <p>ロード中...</p>
+          <p>Loading quizzes...</p>
         ) : quizzes.length === 0 ? (
-          <p>この条件のクイズはまだありません。</p>
+          <p>No quizzes match these filters yet.</p>
         ) : (
           <div className="grid-list">
             {quizzes.map((quiz) => (
-              <article key={quiz.id} className="card">
+              <article key={quiz.id} className="card quiz-card">
                 <div className="card-header">
                   <span className="tag">{quiz.subject}</span>
-                  <span className="tag">{quiz.grade}</span>
+                  <span className="tag muted">{quiz.grade}</span>
                 </div>
                 <h3>{quiz.title}</h3>
                 <p>{quiz.description}</p>
+                <p className="hint">{quiz.questions.length} questions</p>
                 <div className="card-actions">
-                  <Link to={`/challenge/${quiz.id}`} className="button">挑戦する</Link>
+                  <Link to={`/challenge/${quiz.id}`} className="button">Start</Link>
                 </div>
               </article>
             ))}
