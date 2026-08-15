@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { ProgressRecord, Quiz } from '../types';
 import { buildSubjectSummary, buildTrend, getAccuracy, getTotals } from '../utils/chartHelpers';
+import { subjectLabel } from '../utils/labels';
 
 function Analytics() {
   const [records, setRecords] = useState<ProgressRecord[]>([]);
@@ -27,20 +28,20 @@ function Analytics() {
   return (
     <section className="page-stack">
       <div className="panel">
-        <p className="eyebrow">Analytics</p>
-        <h2>Learning signal</h2>
-        <p>Accuracy, streaks, and subject balance from your completed quizzes.</p>
+        <p className="eyebrow">分析</p>
+        <h2>学習の傾向</h2>
+        <p>これまでに完了したクイズの正答率、連続正解数、科目バランスを表示します。</p>
         <div className="stat-grid">
           <div className="stat-card">
-            <span>Overall accuracy</span>
+            <span>総合正答率</span>
             <strong>{getAccuracy(totals.correct, totals.total)}%</strong>
           </div>
           <div className="stat-card">
-            <span>Questions answered</span>
+            <span>回答した問題数</span>
             <strong>{totals.total}</strong>
           </div>
           <div className="stat-card">
-            <span>Best streak</span>
+            <span>最高連続正解数</span>
             <strong>{totals.bestStreak}</strong>
           </div>
         </div>
@@ -49,16 +50,16 @@ function Analytics() {
       <div className="panel">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Score trend</p>
-            <h2>Recent quiz accuracy</h2>
+            <p className="eyebrow">スコアの推移</p>
+            <h2>直近のクイズ正答率</h2>
           </div>
         </div>
         {loading ? (
-          <p>Loading analytics...</p>
+          <p>分析を読み込み中...</p>
         ) : trend.length === 0 ? (
-          <p>No analytics yet. Complete a quiz to draw your first trend.</p>
+          <p>分析データはまだありません。クイズを完了すると推移が表示されます。</p>
         ) : (
-          <div className="bar-chart" role="img" aria-label="Quiz accuracy chart">
+          <div className="bar-chart" role="img" aria-label="クイズ正答率のグラフ">
             {trend.map((point) => (
               <div className="bar-column" key={point.label}>
                 <div className="bar-shell">
@@ -73,16 +74,16 @@ function Analytics() {
       </div>
 
       <div className="panel">
-        <p className="eyebrow">Subjects</p>
-        <h2>Accuracy by subject</h2>
+        <p className="eyebrow">科目</p>
+        <h2>科目別正答率</h2>
         <div className="subject-list">
           {subjects.length === 0 ? (
-            <p>No subject data yet.</p>
+            <p>科目データはまだありません。</p>
           ) : subjects.map((subject) => (
             <article className="subject-row" key={subject.subject}>
               <div>
-                <strong>{subject.subject}</strong>
-                <span>{subject.correct} / {subject.total} correct</span>
+                <strong>{subjectLabel(subject.subject)}</strong>
+                <span>{subject.correct} / {subject.total} 問正解</span>
               </div>
               <div className="meter" aria-label={`${subject.accuracy}%`}>
                 <span style={{ width: `${subject.accuracy}%` }} />

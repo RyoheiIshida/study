@@ -18,6 +18,7 @@ model User {
   passwordHash String
   createdAt    DateTime         @default(now())
   progress     ProgressRecord[]
+  quizAttempts QuizAttempt[]
 }
 
 model Quiz {
@@ -29,6 +30,7 @@ model Quiz {
   questions       Question[]
   createdAt       DateTime         @default(now())
   progressRecords ProgressRecord[]
+  quizAttempts    QuizAttempt[]
 }
 
 model Question {
@@ -54,4 +56,18 @@ model ProgressRecord {
   lastPlayed DateTime
 
   @@unique([username, quizId])
+}
+
+model QuizAttempt {
+  id       Int      @id @default(autoincrement())
+  username String
+  user     User     @relation(fields: [username], references: [username])
+  quiz     Quiz     @relation(fields: [quizId], references: [id])
+  quizId   String
+  total    Int
+  correct  Int
+  streak   Int
+  playedAt DateTime @default(now())
+
+  @@index([username, playedAt])
 }

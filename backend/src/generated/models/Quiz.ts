@@ -192,6 +192,7 @@ export type QuizWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Quiz"> | Date | string
   questions?: Prisma.QuestionListRelationFilter
   progressRecords?: Prisma.ProgressRecordListRelationFilter
+  quizAttempts?: Prisma.QuizAttemptListRelationFilter
 }
 
 export type QuizOrderByWithRelationInput = {
@@ -203,6 +204,7 @@ export type QuizOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   questions?: Prisma.QuestionOrderByRelationAggregateInput
   progressRecords?: Prisma.ProgressRecordOrderByRelationAggregateInput
+  quizAttempts?: Prisma.QuizAttemptOrderByRelationAggregateInput
 }
 
 export type QuizWhereUniqueInput = Prisma.AtLeast<{
@@ -217,6 +219,7 @@ export type QuizWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Quiz"> | Date | string
   questions?: Prisma.QuestionListRelationFilter
   progressRecords?: Prisma.ProgressRecordListRelationFilter
+  quizAttempts?: Prisma.QuizAttemptListRelationFilter
 }, "id">
 
 export type QuizOrderByWithAggregationInput = {
@@ -252,6 +255,7 @@ export type QuizCreateInput = {
   createdAt?: Date | string
   questions?: Prisma.QuestionCreateNestedManyWithoutQuizInput
   progressRecords?: Prisma.ProgressRecordCreateNestedManyWithoutQuizInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutQuizInput
 }
 
 export type QuizUncheckedCreateInput = {
@@ -263,6 +267,7 @@ export type QuizUncheckedCreateInput = {
   createdAt?: Date | string
   questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutQuizInput
   progressRecords?: Prisma.ProgressRecordUncheckedCreateNestedManyWithoutQuizInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutQuizInput
 }
 
 export type QuizUpdateInput = {
@@ -274,6 +279,7 @@ export type QuizUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   questions?: Prisma.QuestionUpdateManyWithoutQuizNestedInput
   progressRecords?: Prisma.ProgressRecordUpdateManyWithoutQuizNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutQuizNestedInput
 }
 
 export type QuizUncheckedUpdateInput = {
@@ -285,6 +291,7 @@ export type QuizUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   questions?: Prisma.QuestionUncheckedUpdateManyWithoutQuizNestedInput
   progressRecords?: Prisma.ProgressRecordUncheckedUpdateManyWithoutQuizNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutQuizNestedInput
 }
 
 export type QuizCreateManyInput = {
@@ -374,6 +381,20 @@ export type QuizUpdateOneRequiredWithoutProgressRecordsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.QuizUpdateToOneWithWhereWithoutProgressRecordsInput, Prisma.QuizUpdateWithoutProgressRecordsInput>, Prisma.QuizUncheckedUpdateWithoutProgressRecordsInput>
 }
 
+export type QuizCreateNestedOneWithoutQuizAttemptsInput = {
+  create?: Prisma.XOR<Prisma.QuizCreateWithoutQuizAttemptsInput, Prisma.QuizUncheckedCreateWithoutQuizAttemptsInput>
+  connectOrCreate?: Prisma.QuizCreateOrConnectWithoutQuizAttemptsInput
+  connect?: Prisma.QuizWhereUniqueInput
+}
+
+export type QuizUpdateOneRequiredWithoutQuizAttemptsNestedInput = {
+  create?: Prisma.XOR<Prisma.QuizCreateWithoutQuizAttemptsInput, Prisma.QuizUncheckedCreateWithoutQuizAttemptsInput>
+  connectOrCreate?: Prisma.QuizCreateOrConnectWithoutQuizAttemptsInput
+  upsert?: Prisma.QuizUpsertWithoutQuizAttemptsInput
+  connect?: Prisma.QuizWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.QuizUpdateToOneWithWhereWithoutQuizAttemptsInput, Prisma.QuizUpdateWithoutQuizAttemptsInput>, Prisma.QuizUncheckedUpdateWithoutQuizAttemptsInput>
+}
+
 export type QuizCreateWithoutQuestionsInput = {
   id: string
   title: string
@@ -382,6 +403,7 @@ export type QuizCreateWithoutQuestionsInput = {
   description: string
   createdAt?: Date | string
   progressRecords?: Prisma.ProgressRecordCreateNestedManyWithoutQuizInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutQuizInput
 }
 
 export type QuizUncheckedCreateWithoutQuestionsInput = {
@@ -392,6 +414,7 @@ export type QuizUncheckedCreateWithoutQuestionsInput = {
   description: string
   createdAt?: Date | string
   progressRecords?: Prisma.ProgressRecordUncheckedCreateNestedManyWithoutQuizInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutQuizInput
 }
 
 export type QuizCreateOrConnectWithoutQuestionsInput = {
@@ -418,6 +441,7 @@ export type QuizUpdateWithoutQuestionsInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progressRecords?: Prisma.ProgressRecordUpdateManyWithoutQuizNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutQuizNestedInput
 }
 
 export type QuizUncheckedUpdateWithoutQuestionsInput = {
@@ -428,6 +452,7 @@ export type QuizUncheckedUpdateWithoutQuestionsInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progressRecords?: Prisma.ProgressRecordUncheckedUpdateManyWithoutQuizNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutQuizNestedInput
 }
 
 export type QuizCreateWithoutProgressRecordsInput = {
@@ -438,6 +463,7 @@ export type QuizCreateWithoutProgressRecordsInput = {
   description: string
   createdAt?: Date | string
   questions?: Prisma.QuestionCreateNestedManyWithoutQuizInput
+  quizAttempts?: Prisma.QuizAttemptCreateNestedManyWithoutQuizInput
 }
 
 export type QuizUncheckedCreateWithoutProgressRecordsInput = {
@@ -448,6 +474,7 @@ export type QuizUncheckedCreateWithoutProgressRecordsInput = {
   description: string
   createdAt?: Date | string
   questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutQuizInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedCreateNestedManyWithoutQuizInput
 }
 
 export type QuizCreateOrConnectWithoutProgressRecordsInput = {
@@ -474,6 +501,7 @@ export type QuizUpdateWithoutProgressRecordsInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   questions?: Prisma.QuestionUpdateManyWithoutQuizNestedInput
+  quizAttempts?: Prisma.QuizAttemptUpdateManyWithoutQuizNestedInput
 }
 
 export type QuizUncheckedUpdateWithoutProgressRecordsInput = {
@@ -484,6 +512,67 @@ export type QuizUncheckedUpdateWithoutProgressRecordsInput = {
   description?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   questions?: Prisma.QuestionUncheckedUpdateManyWithoutQuizNestedInput
+  quizAttempts?: Prisma.QuizAttemptUncheckedUpdateManyWithoutQuizNestedInput
+}
+
+export type QuizCreateWithoutQuizAttemptsInput = {
+  id: string
+  title: string
+  subject: string
+  grade: string
+  description: string
+  createdAt?: Date | string
+  questions?: Prisma.QuestionCreateNestedManyWithoutQuizInput
+  progressRecords?: Prisma.ProgressRecordCreateNestedManyWithoutQuizInput
+}
+
+export type QuizUncheckedCreateWithoutQuizAttemptsInput = {
+  id: string
+  title: string
+  subject: string
+  grade: string
+  description: string
+  createdAt?: Date | string
+  questions?: Prisma.QuestionUncheckedCreateNestedManyWithoutQuizInput
+  progressRecords?: Prisma.ProgressRecordUncheckedCreateNestedManyWithoutQuizInput
+}
+
+export type QuizCreateOrConnectWithoutQuizAttemptsInput = {
+  where: Prisma.QuizWhereUniqueInput
+  create: Prisma.XOR<Prisma.QuizCreateWithoutQuizAttemptsInput, Prisma.QuizUncheckedCreateWithoutQuizAttemptsInput>
+}
+
+export type QuizUpsertWithoutQuizAttemptsInput = {
+  update: Prisma.XOR<Prisma.QuizUpdateWithoutQuizAttemptsInput, Prisma.QuizUncheckedUpdateWithoutQuizAttemptsInput>
+  create: Prisma.XOR<Prisma.QuizCreateWithoutQuizAttemptsInput, Prisma.QuizUncheckedCreateWithoutQuizAttemptsInput>
+  where?: Prisma.QuizWhereInput
+}
+
+export type QuizUpdateToOneWithWhereWithoutQuizAttemptsInput = {
+  where?: Prisma.QuizWhereInput
+  data: Prisma.XOR<Prisma.QuizUpdateWithoutQuizAttemptsInput, Prisma.QuizUncheckedUpdateWithoutQuizAttemptsInput>
+}
+
+export type QuizUpdateWithoutQuizAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  subject?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  questions?: Prisma.QuestionUpdateManyWithoutQuizNestedInput
+  progressRecords?: Prisma.ProgressRecordUpdateManyWithoutQuizNestedInput
+}
+
+export type QuizUncheckedUpdateWithoutQuizAttemptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  subject?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  questions?: Prisma.QuestionUncheckedUpdateManyWithoutQuizNestedInput
+  progressRecords?: Prisma.ProgressRecordUncheckedUpdateManyWithoutQuizNestedInput
 }
 
 
@@ -494,11 +583,13 @@ export type QuizUncheckedUpdateWithoutProgressRecordsInput = {
 export type QuizCountOutputType = {
   questions: number
   progressRecords: number
+  quizAttempts: number
 }
 
 export type QuizCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   questions?: boolean | QuizCountOutputTypeCountQuestionsArgs
   progressRecords?: boolean | QuizCountOutputTypeCountProgressRecordsArgs
+  quizAttempts?: boolean | QuizCountOutputTypeCountQuizAttemptsArgs
 }
 
 /**
@@ -525,6 +616,13 @@ export type QuizCountOutputTypeCountProgressRecordsArgs<ExtArgs extends runtime.
   where?: Prisma.ProgressRecordWhereInput
 }
 
+/**
+ * QuizCountOutputType without action
+ */
+export type QuizCountOutputTypeCountQuizAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.QuizAttemptWhereInput
+}
+
 
 export type QuizSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -535,6 +633,7 @@ export type QuizSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   questions?: boolean | Prisma.Quiz$questionsArgs<ExtArgs>
   progressRecords?: boolean | Prisma.Quiz$progressRecordsArgs<ExtArgs>
+  quizAttempts?: boolean | Prisma.Quiz$quizAttemptsArgs<ExtArgs>
   _count?: boolean | Prisma.QuizCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["quiz"]>
 
@@ -569,6 +668,7 @@ export type QuizOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type QuizInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   questions?: boolean | Prisma.Quiz$questionsArgs<ExtArgs>
   progressRecords?: boolean | Prisma.Quiz$progressRecordsArgs<ExtArgs>
+  quizAttempts?: boolean | Prisma.Quiz$quizAttemptsArgs<ExtArgs>
   _count?: boolean | Prisma.QuizCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type QuizIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -579,6 +679,7 @@ export type $QuizPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     questions: Prisma.$QuestionPayload<ExtArgs>[]
     progressRecords: Prisma.$ProgressRecordPayload<ExtArgs>[]
+    quizAttempts: Prisma.$QuizAttemptPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -983,6 +1084,7 @@ export interface Prisma__QuizClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   questions<T extends Prisma.Quiz$questionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Quiz$questionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   progressRecords<T extends Prisma.Quiz$progressRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Quiz$progressRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProgressRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  quizAttempts<T extends Prisma.Quiz$quizAttemptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Quiz$quizAttemptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuizAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1456,6 +1558,30 @@ export type Quiz$progressRecordsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.ProgressRecordScalarFieldEnum | Prisma.ProgressRecordScalarFieldEnum[]
+}
+
+/**
+ * Quiz.quizAttempts
+ */
+export type Quiz$quizAttemptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the QuizAttempt
+   */
+  select?: Prisma.QuizAttemptSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the QuizAttempt
+   */
+  omit?: Prisma.QuizAttemptOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.QuizAttemptInclude<ExtArgs> | null
+  where?: Prisma.QuizAttemptWhereInput
+  orderBy?: Prisma.QuizAttemptOrderByWithRelationInput | Prisma.QuizAttemptOrderByWithRelationInput[]
+  cursor?: Prisma.QuizAttemptWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.QuizAttemptScalarFieldEnum | Prisma.QuizAttemptScalarFieldEnum[]
 }
 
 /**

@@ -48,7 +48,7 @@ export function buildSubjectSummary(records: ProgressRecord[], quizzes: Quiz[]):
   const summary = new Map<string, { correct: number; total: number }>();
   for (const record of records) {
     const quiz = quizzes.find((item) => item.id === record.quizId);
-    const subject = quiz?.subject ?? 'Unknown';
+    const subject = quiz?.subject ?? '不明';
     const current = summary.get(subject) ?? { correct: 0, total: 0 };
     summary.set(subject, {
       correct: current.correct + record.correct,

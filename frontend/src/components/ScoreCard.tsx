@@ -9,15 +9,15 @@ function ScoreCard({ score, streak, correctCount, total }: ScoreCardProps) {
   return (
     <div className="score-card">
       <div className="score-row">
-        <span>Score</span>
+        <span>スコア</span>
         <strong>{score}</strong>
       </div>
       <div className="score-row">
-        <span>Streak</span>
+        <span>連続正解</span>
         <strong>{streak}</strong>
       </div>
       <div className="score-row">
-        <span>Correct</span>
+        <span>正解数</span>
         <strong>{correctCount}/{total}</strong>
       </div>
     </div>

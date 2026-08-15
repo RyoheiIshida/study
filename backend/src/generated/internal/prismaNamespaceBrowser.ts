@@ -54,7 +54,8 @@ export const ModelName = {
   User: 'User',
   Quiz: 'Quiz',
   Question: 'Question',
-  ProgressRecord: 'ProgressRecord'
+  ProgressRecord: 'ProgressRecord',
+  QuizAttempt: 'QuizAttempt'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -119,6 +120,19 @@ export const ProgressRecordScalarFieldEnum = {
 } as const
 
 export type ProgressRecordScalarFieldEnum = (typeof ProgressRecordScalarFieldEnum)[keyof typeof ProgressRecordScalarFieldEnum]
+
+
+export const QuizAttemptScalarFieldEnum = {
+  id: 'id',
+  username: 'username',
+  quizId: 'quizId',
+  total: 'total',
+  correct: 'correct',
+  streak: 'streak',
+  playedAt: 'playedAt'
+} as const
+
+export type QuizAttemptScalarFieldEnum = (typeof QuizAttemptScalarFieldEnum)[keyof typeof QuizAttemptScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -21,7 +21,7 @@ function Login() {
       await login({ username, password });
       navigate(from, { replace: true });
     } catch {
-      setError('Login failed. Check your username and password.');
+      setError('ログインに失敗しました。ユーザー名とパスワードを確認してください。');
     } finally {
       setIsSubmitting(false);
     }
@@ -30,23 +30,23 @@ function Login() {
   return (
     <section className="auth-wrap">
       <div className="panel auth-panel">
-        <p className="eyebrow">Welcome back</p>
-        <h2>Log in</h2>
+        <p className="eyebrow">おかえりなさい</p>
+        <h2>ログイン</h2>
         <form onSubmit={handleSubmit} className="auth-form">
           <label>
-            Username
+            ユーザー名
             <input value={username} onChange={(e) => setUsername(e.target.value)} autoFocus required />
           </label>
           <label>
-            Password
+            パスワード
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </label>
           {error && <p className="feedback">{error}</p>}
           <button type="submit" className="button" disabled={isSubmitting}>
-            {isSubmitting ? 'Logging in...' : 'Log in'}
+            {isSubmitting ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
-        <p>New here? <Link to="/register">Create an account</Link></p>
+        <p>はじめての方は <Link to="/register">アカウントを作成</Link></p>
       </div>
     </section>
   );

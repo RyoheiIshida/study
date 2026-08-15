@@ -4,6 +4,7 @@ import { fetchQuizById, saveProgress } from '../api/quiz';
 import { GameState, ProgressRecord, Quiz } from '../types';
 import ScoreCard from '../components/ScoreCard';
 import TimerDisplay from '../components/TimerDisplay';
+import { normalizeReading } from '../utils/reading';
 
 const QUESTION_SECONDS = 30;
 
@@ -13,7 +14,7 @@ const initialState: GameState = {
   streak: 0,
   score: 0,
   finished: false,
-  message: 'Ready when you are.',
+  message: '準備ができたら始めましょう。',
 };
 
 function QuestionChallenge() {
@@ -25,6 +26,9 @@ function QuestionChallenge() {
   const [lastExplanation, setLastExplanation] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(QUESTION_SECONDS);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+  const [textAnswer, setTextAnswer] = useState('');
+
+  const isTextInput = quiz?.subject === 'Japanese';
 
   useEffect(() => {
     if (!quizId) return;
@@ -40,33 +44,44 @@ function QuestionChallenge() {
   const currentQuestion = useMemo(() => quiz?.questions[state.currentQuestionIndex], [quiz, state.currentQuestionIndex]);
 
   const answerOptions = useMemo(() => {
-    if (!currentQuestion) return [];
+    if (!currentQuestion || isTextInput) return [];
     if (currentQuestion.options && currentQuestion.options.length >= 4) {
       return currentQuestion.options;
     }
 
     const answerNumber = Number(currentQuestion.answer);
     const base = new Set<string>([currentQuestion.answer]);
-    while (base.size < 4) {
-      if (Number.isFinite(answerNumber)) {
-        base.add(String(Math.max(0, answerNumber + base.size - 2)));
-      } else {
-        base.add(`Option ${base.size + 1}`);
+    if (Number.isFinite(answerNumber)) {
+      let offset = 1;
+      while (base.size < 4) {
+        for (const candidate of [answerNumber - offset, answerNumber + offset]) {
+          if (base.size >= 4) break;
+          if (candidate >= 0) {
+            base.add(String(candidate));
+          }
+        }
+        offset += 1;
+      }
+    } else {
+      let counter = 1;
+      while (base.size < 4) {
+        base.add(`選択肢${counter}`);
+        counter += 1;
       }
     }
     return Array.from(base).sort((a, b) => a.localeCompare(b));
-  }, [currentQuestion]);
+  }, [currentQuestion, isTextInput]);
 
   function submitAnswer(option: string, timedOut = false) {
     if (!quiz || !currentQuestion || state.finished) return;
-    const correct = !timedOut && option.trim() === currentQuestion.answer.trim();
+    const correct = !timedOut && normalizeReading(option) === normalizeReading(currentQuestion.answer);
 
     setState((prev) => {
       const streak = correct ? prev.streak + 1 : 0;
       const score = prev.score + (correct ? 100 + streak * 20 + secondsLeft : 0);
       const nextIndex = prev.currentQuestionIndex + 1;
       const finished = nextIndex >= quiz.questions.length;
-      const message = correct ? 'Correct. Keep the rhythm going.' : `Answer: ${currentQuestion.answer}`;
+      const message = correct ? '正解です。この調子で続けましょう。' : `正解: ${currentQuestion.answer}`;
       return {
         currentQuestionIndex: nextIndex,
         correctCount: prev.correctCount + (correct ? 1 : 0),
@@ -77,9 +92,10 @@ function QuestionChallenge() {
       };
     });
 
-    setFeedback(correct ? 'Correct' : timedOut ? `Time is up. Answer: ${currentQuestion.answer}` : `Not quite. Answer: ${currentQuestion.answer}`);
+    setFeedback(correct ? '正解' : timedOut ? `時間切れです。正解: ${currentQuestion.answer}` : `不正解です。正解: ${currentQuestion.answer}`);
     setLastExplanation(currentQuestion.explanation ?? '');
     setSecondsLeft(QUESTION_SECONDS);
+    setTextAnswer('');
   }
 
   useEffect(() => {
@@ -124,7 +140,7 @@ function QuestionChallenge() {
   }, [quiz, saveStatus, state.correctCount, state.finished, state.streak]);
 
   if (!quiz) {
-    return <p>Loading quiz...</p>;
+    return <p>クイズを読み込み中...</p>;
   }
 
   return (
@@ -132,7 +148,7 @@ function QuestionChallenge() {
       <div className="panel challenge-panel">
         <div className="challenge-header">
           <div>
-            <p className="eyebrow">Challenge</p>
+            <p className="eyebrow">チャレンジ</p>
             <h2>{quiz.title}</h2>
             <p>{quiz.description}</p>
           </div>
@@ -144,37 +160,57 @@ function QuestionChallenge() {
 
         {state.finished ? (
           <div className="result-card">
-            <p className="eyebrow">Complete</p>
-            <h3>{state.correctCount} of {quiz.questions.length} correct</h3>
+            <p className="eyebrow">完了</p>
+            <h3>{quiz.questions.length}問中{state.correctCount}問正解</h3>
             <p>{state.message}</p>
-            <p>Final score: {state.score}</p>
-            {saveStatus === 'saving' && <p>Saving progress...</p>}
-            {saveStatus === 'saved' && <p className="feedback">Progress saved.</p>}
-            {saveStatus === 'failed' && <p className="feedback">Progress could not be saved. Check the API connection.</p>}
+            <p>最終スコア: {state.score}</p>
+            {saveStatus === 'saving' && <p>進捗を保存中...</p>}
+            {saveStatus === 'saved' && <p className="feedback">進捗を保存しました。</p>}
+            {saveStatus === 'failed' && <p className="feedback">進捗を保存できませんでした。API接続を確認してください。</p>}
             <div className="challenge-actions centered">
               <button className="button" onClick={() => navigate('/progress')} disabled={saveStatus === 'saving'}>
-                View progress
+                進捗を見る
               </button>
               <button className="button secondary" onClick={() => window.location.reload()}>
-                Try again
+                もう一度挑戦
               </button>
             </div>
           </div>
         ) : currentQuestion ? (
           <div className="challenge-form">
             <div className="question-card">
-              <p className="eyebrow">Question {state.currentQuestionIndex + 1} of {quiz.questions.length}</p>
+              <p className="eyebrow">問題 {state.currentQuestionIndex + 1} / {quiz.questions.length}</p>
               <h3>{currentQuestion.text}</h3>
             </div>
-            <div className="answer-buttons">
-              {answerOptions.map((option) => (
-                <button key={option} type="button" className="option-button" onClick={() => submitAnswer(option)}>
-                  {option}
-                </button>
-              ))}
-            </div>
+            {isTextInput ? (
+              <form
+                className="answer-text-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submitAnswer(textAnswer);
+                }}
+              >
+                <input
+                  type="text"
+                  className="answer-text-input"
+                  value={textAnswer}
+                  onChange={(event) => setTextAnswer(event.target.value)}
+                  placeholder="ひらがなで入力"
+                  autoFocus
+                />
+                <button type="submit" className="button">回答する</button>
+              </form>
+            ) : (
+              <div className="answer-buttons">
+                {answerOptions.map((option) => (
+                  <button key={option} type="button" className="option-button" onClick={() => submitAnswer(option)}>
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="challenge-actions">
-              <button type="button" className="button secondary" onClick={() => navigate('/')}>Back to quizzes</button>
+              <button type="button" className="button secondary" onClick={() => navigate('/')}>クイズ一覧に戻る</button>
             </div>
             {feedback && (
               <div className="feedback-panel">

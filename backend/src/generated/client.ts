@@ -61,3 +61,8 @@ export type Question = Prisma.QuestionModel
  * 
  */
 export type ProgressRecord = Prisma.ProgressRecordModel
+/**
+ * Model QuizAttempt
+ * 
+ */
+export type QuizAttempt = Prisma.QuizAttemptModel

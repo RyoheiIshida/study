@@ -3,6 +3,7 @@ import cors from 'cors';
 import authRouter from './routes/auth.js';
 import quizRouter from './routes/quiz.js';
 import progressRouter from './routes/progress.js';
+import questsRouter from './routes/quests.js';
 import { prisma } from './db.js';
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/api/auth', authRouter);
 app.use('/api/quizzes', quizRouter);
 app.use('/api/progress', progressRouter);
+app.use('/api/quests', questsRouter);
 
 app.get('/', (req, res) => {
   res.send({ message: 'Study Game API is running' });

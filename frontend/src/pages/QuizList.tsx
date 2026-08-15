@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useQuizStore } from '../hooks/useQuizStore';
 import { Grade, Subject } from '../types';
+import { gradeLabel, subjectLabel } from '../utils/labels';
+import DailyQuestPanel from '../components/DailyQuestPanel';
 
-const subjectOptions: Subject[] = ['Arithmetic', 'Math', 'English'];
+const subjectOptions: Subject[] = ['Arithmetic', 'Math', 'English', 'Japanese'];
 const gradeOptions: Grade[] = ['Elementary', 'Middle School'];
 
 function QuizList() {
@@ -17,57 +19,58 @@ function QuizList() {
 
   return (
     <section className="page-stack">
+      <DailyQuestPanel />
       <div className="panel filter-panel">
         <div>
-          <p className="eyebrow">Quiz deck</p>
-          <h2>Choose a focused practice set</h2>
+          <p className="eyebrow">クイズ一覧</p>
+          <h2>取り組む問題セットを選ぶ</h2>
         </div>
         <div className="filters">
           <label>
-            Subject
+            科目
             <select value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value as Subject)}>
               {subjectOptions.map((subject) => (
-                <option key={subject} value={subject}>{subject}</option>
+                <option key={subject} value={subject}>{subjectLabel(subject)}</option>
               ))}
             </select>
           </label>
           <label>
-            Grade
+            学年
             <select value={selectedGrade} onChange={(event) => setSelectedGrade(event.target.value as Grade)}>
               {gradeOptions.map((grade) => (
-                <option key={grade} value={grade}>{grade}</option>
+                <option key={grade} value={grade}>{gradeLabel(grade)}</option>
               ))}
             </select>
           </label>
-          <Link to="/analytics" className="button secondary">View analytics</Link>
+          <Link to="/analytics" className="button secondary">分析を見る</Link>
         </div>
       </div>
 
       <div className="panel">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Available now</p>
-            <h2>Quizzes</h2>
+            <p className="eyebrow">受講可能</p>
+            <h2>クイズ</h2>
           </div>
-          <Link to="/progress" className="text-link">Progress log</Link>
+          <Link to="/progress" className="text-link">進捗ログ</Link>
         </div>
         {isLoading ? (
-          <p>Loading quizzes...</p>
+          <p>クイズを読み込み中...</p>
         ) : quizzes.length === 0 ? (
-          <p>No quizzes match these filters yet.</p>
+          <p>この条件に一致するクイズはまだありません。</p>
         ) : (
           <div className="grid-list">
             {quizzes.map((quiz) => (
               <article key={quiz.id} className="card quiz-card">
                 <div className="card-header">
-                  <span className="tag">{quiz.subject}</span>
-                  <span className="tag muted">{quiz.grade}</span>
+                  <span className="tag">{subjectLabel(quiz.subject)}</span>
+                  <span className="tag muted">{gradeLabel(quiz.grade)}</span>
                 </div>
                 <h3>{quiz.title}</h3>
                 <p>{quiz.description}</p>
-                <p className="hint">{quiz.questions.length} questions</p>
+                <p className="hint">問題数 {quiz.questions.length}問</p>
                 <div className="card-actions">
-                  <Link to={`/challenge/${quiz.id}`} className="button">Start</Link>
+                  <Link to={`/challenge/${quiz.id}`} className="button">開始</Link>
                 </div>
               </article>
             ))}

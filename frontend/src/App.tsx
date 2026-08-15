@@ -15,16 +15,16 @@ function App() {
     <div className="app-shell">
       <header className="top-bar">
         <div className="brand-block">
-          <Link to="/" className="brand-mark">Study Game</Link>
-          <p>Short quiz sessions with progress tracking and clean review loops.</p>
+          <Link to="/" className="brand-mark">スタディゲーム</Link>
+          <p>進捗管理と復習をスムーズに行える、短時間クイズセッション。</p>
         </div>
-        <nav className="nav-links" aria-label="Primary navigation">
+        <nav className="nav-links" aria-label="メインナビゲーション">
           {user && (
             <>
-              <NavLink to="/">Quizzes</NavLink>
-              <NavLink to="/progress">Progress</NavLink>
-              <NavLink to="/analytics">Analytics</NavLink>
-              <NavLink to="/profile">Profile</NavLink>
+              <NavLink to="/">クイズ</NavLink>
+              <NavLink to="/progress">進捗</NavLink>
+              <NavLink to="/analytics">分析</NavLink>
+              <NavLink to="/profile">プロフィール</NavLink>
             </>
           )}
         </nav>
@@ -33,13 +33,13 @@ function App() {
             <>
               <span className="user-chip">{user.username}</span>
               <button className="button secondary" type="button" onClick={logout}>
-                Log out
+                ログアウト
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="button secondary">Log in</Link>
-              <Link to="/register" className="button">Register</Link>
+              <Link to="/login" className="button secondary">ログイン</Link>
+              <Link to="/register" className="button">新規登録</Link>
             </>
           )}
         </div>

@@ -3,6 +3,7 @@ import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { useAuth } from '../context/AuthContext';
 import { ProgressRecord, Quiz } from '../types';
 import { buildSubjectSummary, getAccuracy, getBestRecord, getTotals } from '../utils/chartHelpers';
+import { subjectLabel } from '../utils/labels';
 
 function UserProfile() {
   const { user, logout } = useAuth();
@@ -24,50 +25,50 @@ function UserProfile() {
   const subjects = useMemo(() => buildSubjectSummary(records, quizzes), [records, quizzes]);
   const lastPlayed = records.length > 0
     ? new Date(Math.max(...records.map((record) => new Date(record.lastPlayed).getTime()))).toLocaleString()
-    : 'Not started';
+    : '未開始';
 
   return (
     <section className="page-stack">
       <div className="panel profile-hero">
         <div>
-          <p className="eyebrow">Profile</p>
+          <p className="eyebrow">プロフィール</p>
           <h2>{user?.username}</h2>
-          <p>Last practice: {lastPlayed}</p>
+          <p>最終練習日: {lastPlayed}</p>
         </div>
-        <button className="button secondary" type="button" onClick={logout}>Log out</button>
+        <button className="button secondary" type="button" onClick={logout}>ログアウト</button>
       </div>
 
       <div className="stat-grid">
         <div className="stat-card">
-          <span>Completed quizzes</span>
+          <span>完了したクイズ数</span>
           <strong>{records.length}</strong>
         </div>
         <div className="stat-card">
-          <span>Average accuracy</span>
+          <span>平均正答率</span>
           <strong>{getAccuracy(totals.correct, totals.total)}%</strong>
         </div>
         <div className="stat-card">
-          <span>Best streak</span>
+          <span>最高連続正解数</span>
           <strong>{totals.bestStreak}</strong>
         </div>
       </div>
 
       <div className="panel">
-        <p className="eyebrow">Top performance</p>
-        <h2>{best?.title ?? 'No completed quiz yet'}</h2>
-        <p>{best ? `${best.accuracy}% accuracy, ${best.record.correct}/${best.record.total} correct.` : 'Complete a quiz to build your profile.'}</p>
+        <p className="eyebrow">最高記録</p>
+        <h2>{best?.title ?? '完了したクイズはまだありません'}</h2>
+        <p>{best ? `正答率${best.accuracy}%、${best.record.correct}/${best.record.total}問正解。` : 'クイズを完了してプロフィールを充実させましょう。'}</p>
       </div>
 
       <div className="panel">
-        <p className="eyebrow">Subject record</p>
+        <p className="eyebrow">科目別記録</p>
         <div className="subject-list">
           {subjects.length === 0 ? (
-            <p>No subject stats yet.</p>
+            <p>科目別のデータはまだありません。</p>
           ) : subjects.map((subject) => (
             <article className="subject-row" key={subject.subject}>
               <div>
-                <strong>{subject.subject}</strong>
-                <span>{subject.correct} / {subject.total} correct</span>
+                <strong>{subjectLabel(subject.subject)}</strong>
+                <span>{subject.correct} / {subject.total} 問正解</span>
               </div>
               <div className="meter">
                 <span style={{ width: `${subject.accuracy}%` }} />

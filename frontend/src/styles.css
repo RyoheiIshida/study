@@ -218,6 +218,30 @@ select, input {
 .card-actions { margin-top: 16px; }
 .hint { margin: 0; color: var(--muted); }
 
+.quest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.quest-card {
+  display: grid;
+  gap: 10px;
+}
+
+.quest-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.quest-complete {
+  border-color: var(--accent);
+  background: #eaf6f2;
+}
+
 .challenge-header {
   display: grid;
   gap: 18px;
@@ -310,6 +334,30 @@ select, input {
 .option-button:hover {
   border-color: var(--accent);
   transform: translateY(-1px);
+}
+
+.answer-text-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.answer-text-input {
+  flex: 1;
+  min-width: 200px;
+  min-height: 56px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid #bdd9d1;
+  background: #f2fbf8;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.answer-text-input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .challenge-actions {

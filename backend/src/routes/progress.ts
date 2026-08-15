@@ -38,16 +38,28 @@ router.post('/', async (req, res) => {
     lastPlayed: record.lastPlayed ? new Date(record.lastPlayed) : new Date(),
   };
 
-  const saved = await prisma.progressRecord.upsert({
-    where: {
-      username_quizId: {
+  const [saved] = await prisma.$transaction([
+    prisma.progressRecord.upsert({
+      where: {
+        username_quizId: {
+          username: payload.username,
+          quizId: payload.quizId,
+        },
+      },
+      update: payload,
+      create: payload,
+    }),
+    prisma.quizAttempt.create({
+      data: {
         username: payload.username,
         quizId: payload.quizId,
+        total: payload.total,
+        correct: payload.correct,
+        streak: payload.streak,
+        playedAt: payload.lastPlayed,
       },
-    },
-    update: payload,
-    create: payload,
-  });
+    }),
+  ]);
 
   res.status(201).json(saved);
 });

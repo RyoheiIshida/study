@@ -1,4 +1,4 @@
-export type Subject = 'Arithmetic' | 'Math' | 'English';
+export type Subject = 'Arithmetic' | 'Math' | 'English' | 'Japanese';
 export type Grade = 'Elementary' | 'Middle School';
 
 export type QuizDifficulty = 'Easy' | 'Normal' | 'Hard';
@@ -42,6 +42,15 @@ export interface ProgressRecord {
   correct: number;
   streak: number;
   lastPlayed: string;
+}
+
+export interface DailyQuest {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  current: number;
+  target: number;
 }
 
 export interface GameState {

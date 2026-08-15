@@ -90,7 +90,7 @@ export function RequireAuth({ children }: { children: JSX.Element }) {
   }, [loading, user, navigate]);
 
   if (loading || !user) {
-    return <p>Checking your session...</p>;
+    return <p>セッションを確認中...</p>;
   }
 
   return children;

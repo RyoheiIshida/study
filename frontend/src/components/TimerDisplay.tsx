@@ -11,8 +11,8 @@ function TimerDisplay({ secondsLeft, totalSeconds }: TimerDisplayProps) {
   return (
     <div className={`timer-display ${urgent ? 'urgent' : ''}`} aria-live="polite">
       <div className="timer-topline">
-        <span>Time</span>
-        <strong>{secondsLeft}s</strong>
+        <span>残り時間</span>
+        <strong>{secondsLeft}秒</strong>
       </div>
       <div className="timer-track" aria-hidden="true">
         <span style={{ width: `${percent}%` }} />

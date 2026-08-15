@@ -17,7 +17,7 @@ function Progress() {
       setQuizzes(quizData);
       setRecords(progressData);
     } catch {
-      setErrorMessage('Progress could not be loaded.');
+      setErrorMessage('進捗を読み込めませんでした。');
     } finally {
       setIsLoading(false);
     }
@@ -39,26 +39,26 @@ function Progress() {
       <div className="panel">
         <div className="challenge-header">
           <div>
-            <p className="eyebrow">Progress</p>
-            <h2>Practice dashboard</h2>
-            <p>Review your latest quiz results and streaks.</p>
+            <p className="eyebrow">進捗</p>
+            <h2>練習ダッシュボード</h2>
+            <p>最近のクイズ結果と連続正解数を確認できます。</p>
           </div>
           <button className="button secondary" onClick={loadProgressData} disabled={isLoading}>
-            {isLoading ? 'Loading...' : 'Refresh'}
+            {isLoading ? '読み込み中...' : '更新'}
           </button>
         </div>
         {errorMessage && <p className="feedback">{errorMessage}</p>}
         <div className="stat-grid">
           <div className="stat-card">
-            <span>Completed</span>
+            <span>完了数</span>
             <strong>{records.length}</strong>
           </div>
           <div className="stat-card">
-            <span>Accuracy</span>
+            <span>正答率</span>
             <strong>{getAccuracy(totals.correct, totals.total)}%</strong>
           </div>
           <div className="stat-card">
-            <span>Best streak</span>
+            <span>最高連続正解数</span>
             <strong>{totals.bestStreak}</strong>
           </div>
         </div>
@@ -66,20 +66,20 @@ function Progress() {
 
       <div className="panel">
         {isLoading ? (
-          <p>Loading progress...</p>
+          <p>進捗を読み込み中...</p>
         ) : records.length === 0 ? (
-          <p>No completed quizzes yet. Start from the quiz list.</p>
+          <p>完了したクイズはまだありません。クイズ一覧から始めましょう。</p>
         ) : (
           <div className="progress-grid">
             {progressWithQuiz.map((item) => (
               <article key={item.record.quizId} className="card small-card">
                 <div className="card-header">
                   <span className="tag">{getAccuracy(item.record.correct, item.record.total)}%</span>
-                  <span className="tag muted">Streak {item.record.streak}</span>
+                  <span className="tag muted">連続正解 {item.record.streak}</span>
                 </div>
-                <h3>{item.quiz?.title ?? 'Quiz'}</h3>
-                <p>Correct: {item.record.correct} / {item.record.total}</p>
-                <p>Last played: {new Date(item.record.lastPlayed).toLocaleString()}</p>
+                <h3>{item.quiz?.title ?? 'クイズ'}</h3>
+                <p>正解数: {item.record.correct} / {item.record.total}</p>
+                <p>最終プレイ: {new Date(item.record.lastPlayed).toLocaleString()}</p>
               </article>
             ))}
           </div>
@@ -87,9 +87,9 @@ function Progress() {
       </div>
 
       <div className="panel badge-panel">
-        <p className="eyebrow">Best run</p>
-        <h3>{best?.title ?? 'No badge yet'}</h3>
-        <p>{best ? `${best.accuracy}% accuracy with a streak of ${best.record.streak}.` : 'Complete a quiz to earn your first badge.'}</p>
+        <p className="eyebrow">自己ベスト</p>
+        <h3>{best?.title ?? 'バッジはまだありません'}</h3>
+        <p>{best ? `正答率${best.accuracy}%、連続正解${best.record.streak}回。` : 'クイズを完了して最初のバッジを獲得しましょう。'}</p>
       </div>
     </section>
   );

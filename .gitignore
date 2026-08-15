@@ -4,3 +4,8 @@ backend/node_modules/
 dist/
 .vscode/
 .DS_Store
+.env
+.env.local
+frontend/.env
+backend/.env
+.edge-profile-tmp/
