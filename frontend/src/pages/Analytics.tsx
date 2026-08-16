@@ -1,20 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
-import { ProgressRecord, Quiz } from '../types';
+import { fetchXpSummary } from '../api/xp';
+import { ProgressRecord, Quiz, XpSummary } from '../types';
 import { buildSubjectSummary, buildTrend, getAccuracy, getTotals } from '../utils/chartHelpers';
 import { subjectLabel } from '../utils/labels';
 
 function Analytics() {
   const [records, setRecords] = useState<ProgressRecord[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [quizData, progressData] = await Promise.all([fetchQuizzes(), fetchProgress()]);
+      const [quizData, progressData, xpData] = await Promise.all([
+        fetchQuizzes(),
+        fetchProgress(),
+        fetchXpSummary(),
+      ]);
       setQuizzes(quizData);
       setRecords(progressData);
+      setXpSummary(xpData);
       setLoading(false);
     }
 
@@ -24,6 +31,13 @@ function Analytics() {
   const trend = useMemo(() => buildTrend(records, quizzes), [records, quizzes]);
   const subjects = useMemo(() => buildSubjectSummary(records, quizzes), [records, quizzes]);
   const totals = getTotals(records);
+
+  const xpTrend = xpSummary?.dailyXp ?? [];
+  const maxCumulativeXp = xpTrend.reduce((max, point) => Math.max(max, point.cumulativeXp), 0);
+  const levelUpDates = useMemo(
+    () => new Set((xpSummary?.levelUps ?? []).map((event) => event.at.slice(0, 10))),
+    [xpSummary],
+  );
 
   return (
     <section className="page-stack">
@@ -44,7 +58,56 @@ function Analytics() {
             <span>最高連続正解数</span>
             <strong>{totals.bestStreak}</strong>
           </div>
+          <div className="stat-card">
+            <span>現在のレベル</span>
+            <strong>Lv.{xpSummary?.level ?? 1}</strong>
+          </div>
         </div>
+      </div>
+
+      <div className="panel">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">経験値の推移</p>
+            <h2>累計XPの伸び</h2>
+            <p>クイズをこなすほどXPが積み上がり、レベルアップします。</p>
+          </div>
+        </div>
+        {loading ? (
+          <p>経験値を読み込み中...</p>
+        ) : xpTrend.length === 0 ? (
+          <p>経験値データはまだありません。クイズを完了するとXPが貯まります。</p>
+        ) : (
+          <div className="bar-chart" role="img" aria-label="累計経験値のグラフ">
+            {xpTrend.map((point) => {
+              const heightPercent = maxCumulativeXp > 0
+                ? Math.round((point.cumulativeXp / maxCumulativeXp) * 100)
+                : 0;
+              const isLevelUpDay = levelUpDates.has(point.date);
+              return (
+                <div
+                  className={`bar-column${isLevelUpDay ? ' bar-column-levelup' : ''}`}
+                  key={point.date}
+                >
+                  <div className="bar-shell">
+                    <span style={{ height: `${heightPercent}%` }} />
+                  </div>
+                  <strong>{point.cumulativeXp}XP</strong>
+                  <small title={point.date}>{point.date.slice(5)}</small>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {xpSummary && xpSummary.levelUps.length > 0 && (
+          <div className="level-history">
+            {xpSummary.levelUps.map((event) => (
+              <span className="tag" key={event.level}>
+                Lv.{event.level} 到達 — {new Date(event.at).toLocaleDateString()}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="panel">

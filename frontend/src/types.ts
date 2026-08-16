@@ -53,6 +53,40 @@ export interface DailyQuest {
   target: number;
 }
 
+export interface DailyXpPoint {
+  date: string;
+  xp: number;
+  cumulativeXp: number;
+}
+
+export interface LevelUpEvent {
+  level: number;
+  at: string;
+}
+
+export interface XpSummary {
+  level: number;
+  totalXp: number;
+  xpIntoLevel: number;
+  xpForNextLevel: number;
+  progressPercent: number;
+  attemptCount: number;
+  dailyXp: DailyXpPoint[];
+  levelUps: LevelUpEvent[];
+}
+
+export interface Trophy {
+  quizId: string;
+  quizTitle: string;
+  subject: Subject;
+  achievedAt: string;
+}
+
+export interface TrophySummary {
+  trophies: Trophy[];
+  count: number;
+}
+
 export interface GameState {
   currentQuestionIndex: number;
   correctCount: number;

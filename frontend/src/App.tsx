@@ -1,4 +1,5 @@
-import { Link, Navigate, NavLink, Route, Routes } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import QuizList from './pages/QuizList';
 import QuestionChallenge from './pages/QuestionChallenge';
 import Progress from './pages/Progress';
@@ -7,9 +8,28 @@ import Register from './pages/Register';
 import Analytics from './pages/Analytics';
 import UserProfile from './pages/UserProfile';
 import { RequireAuth, useAuth } from './context/AuthContext';
+import { fetchXpSummary } from './api/xp';
+import { XpSummary } from './types';
+import LevelBadge from './components/LevelBadge';
 
 function App() {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setXpSummary(null);
+      return;
+    }
+    let cancelled = false;
+    fetchXpSummary().then((summary) => {
+      if (!cancelled) setXpSummary(summary);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, location.pathname]);
 
   return (
     <div className="app-shell">
@@ -31,6 +51,7 @@ function App() {
         <div className="auth-actions">
           {user ? (
             <>
+              <LevelBadge summary={xpSummary} />
               <span className="user-chip">{user.username}</span>
               <button className="button secondary" type="button" onClick={logout}>
                 ログアウト

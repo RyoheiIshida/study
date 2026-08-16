@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchQuizById, saveProgress } from '../api/quiz';
-import { GameState, ProgressRecord, Quiz } from '../types';
+import { fetchXpSummary } from '../api/xp';
+import { fetchTrophySummary } from '../api/trophies';
+import { GameState, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import ScoreCard from '../components/ScoreCard';
 import TimerDisplay from '../components/TimerDisplay';
 import { normalizeReading } from '../utils/reading';
+import { pickSessionQuestions } from '../utils/shuffle';
 
 const QUESTION_SECONDS = 30;
 
@@ -27,6 +30,11 @@ function QuestionChallenge() {
   const [secondsLeft, setSecondsLeft] = useState(QUESTION_SECONDS);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const [textAnswer, setTextAnswer] = useState('');
+  const [xpBefore, setXpBefore] = useState<XpSummary | null>(null);
+  const [xpAfter, setXpAfter] = useState<XpSummary | null>(null);
+  const [trophiesBefore, setTrophiesBefore] = useState<TrophySummary | null>(null);
+  const [trophiesAfter, setTrophiesAfter] = useState<TrophySummary | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   const isTextInput = quiz?.subject === 'Japanese';
 
@@ -36,10 +44,25 @@ function QuestionChallenge() {
       if (!result) {
         navigate('/');
       } else {
-        setQuiz(result);
+        setQuiz({ ...result, questions: pickSessionQuestions(result.questions) });
       }
     });
-  }, [quizId, navigate]);
+    fetchXpSummary().then(setXpBefore);
+    fetchTrophySummary().then(setTrophiesBefore);
+  }, [quizId, navigate, retryKey]);
+
+  function retryChallenge() {
+    setState(initialState);
+    setFeedback('');
+    setLastExplanation('');
+    setSecondsLeft(QUESTION_SECONDS);
+    setSaveStatus('idle');
+    setTextAnswer('');
+    setXpAfter(null);
+    setTrophiesAfter(null);
+    setQuiz(null);
+    setRetryKey((key) => key + 1);
+  }
 
   const currentQuestion = useMemo(() => quiz?.questions[state.currentQuestionIndex], [quiz, state.currentQuestionIndex]);
 
@@ -130,6 +153,12 @@ function QuestionChallenge() {
       setSaveStatus('saving');
       try {
         await saveProgress(record);
+        const summary = await fetchXpSummary();
+        setXpAfter(summary);
+        if (record.correct === record.total) {
+          const trophySummary = await fetchTrophySummary();
+          setTrophiesAfter(trophySummary);
+        }
         setSaveStatus('saved');
       } catch {
         setSaveStatus('failed');
@@ -165,13 +194,41 @@ function QuestionChallenge() {
             <p>{state.message}</p>
             <p>最終スコア: {state.score}</p>
             {saveStatus === 'saving' && <p>進捗を保存中...</p>}
-            {saveStatus === 'saved' && <p className="feedback">進捗を保存しました。</p>}
+            {saveStatus === 'saved' && (
+              <>
+                <p className="feedback">進捗を保存しました。</p>
+                {xpAfter && (
+                  <div className="level-result">
+                    <p className="eyebrow">経験値</p>
+                    <p>
+                      獲得XP: +{Math.max(xpAfter.totalXp - (xpBefore?.totalXp ?? xpAfter.totalXp), 0)}
+                      {' '}・ 現在 Lv.{xpAfter.level}（累計{xpAfter.totalXp}XP）
+                    </p>
+                    {xpBefore && xpAfter.level > xpBefore.level && (
+                      <p className="feedback">🎉 レベルアップ！ Lv.{xpAfter.level} になりました。</p>
+                    )}
+                  </div>
+                )}
+                {state.correctCount === quiz.questions.length && (
+                  <div className="trophy-result">
+                    {(() => {
+                      const isNewTrophy = trophiesAfter && !trophiesBefore?.trophies.some((t) => t.quizId === quiz.id);
+                      return (
+                        <p className="feedback">
+                          🏆 {isNewTrophy ? '新しいトロフィーを獲得しました！' : '全問正解トロフィー獲得！'}
+                        </p>
+                      );
+                    })()}
+                  </div>
+                )}
+              </>
+            )}
             {saveStatus === 'failed' && <p className="feedback">進捗を保存できませんでした。API接続を確認してください。</p>}
             <div className="challenge-actions centered">
               <button className="button" onClick={() => navigate('/progress')} disabled={saveStatus === 'saving'}>
                 進捗を見る
               </button>
-              <button className="button secondary" onClick={() => window.location.reload()}>
+              <button className="button secondary" onClick={retryChallenge}>
                 もう一度挑戦
               </button>
             </div>

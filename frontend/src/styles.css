@@ -463,6 +463,116 @@ select, input {
 .subject-row span { color: var(--muted); }
 .meter { height: 12px; }
 
+.level-chip {
+  align-items: center;
+  background: #eaf6f2;
+  border: 1px solid #bdd9d1;
+  border-radius: 999px;
+  display: flex;
+  gap: 8px;
+  padding: 6px 12px;
+}
+
+.level-chip-badge {
+  background: var(--accent);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.level-chip-bar {
+  background: #d7ece5;
+  border-radius: 999px;
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  width: 70px;
+}
+
+.level-chip-bar span {
+  background: linear-gradient(90deg, var(--gold), var(--accent));
+  display: block;
+  height: 100%;
+}
+
+.level-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.level-panel-header {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.level-panel-header strong { font-size: 1.6rem; }
+
+.level-panel-badge {
+  background: linear-gradient(180deg, var(--gold), var(--accent));
+  border-radius: 999px;
+  color: #ffffff;
+  display: grid;
+  flex-shrink: 0;
+  font-size: 1.3rem;
+  font-weight: 900;
+  height: 64px;
+  place-items: center;
+  width: 64px;
+}
+
+.level-meter { height: 14px; }
+
+.level-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.bar-column-levelup .bar-shell span {
+  background: linear-gradient(180deg, var(--rose), var(--gold));
+}
+
+.level-result {
+  background: #eaf6f2;
+  border: 1px solid #bdd9d1;
+  border-radius: 8px;
+  margin-top: 12px;
+  padding: 14px;
+}
+
+.trophy-result {
+  background: #fff6e0;
+  border: 1px solid #ecd9a0;
+  border-radius: 8px;
+  margin-top: 12px;
+  padding: 14px;
+}
+
+.trophy-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin-top: 12px;
+}
+
+.trophy-card {
+  background: #fff6e0;
+  border: 1px solid #ecd9a0;
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  text-align: center;
+}
+
+.trophy-icon { font-size: 2rem; }
+.trophy-date { color: var(--muted); font-size: 0.85rem; }
+
 .auth-wrap {
   display: grid;
   min-height: 62vh;
@@ -510,4 +620,6 @@ select, input {
     min-width: 0;
     width: 100%;
   }
+
+  .level-chip-bar { width: 46px; }
 }

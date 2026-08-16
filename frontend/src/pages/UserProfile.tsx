@@ -1,20 +1,33 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
+import { fetchXpSummary } from '../api/xp';
+import { fetchTrophySummary } from '../api/trophies';
 import { useAuth } from '../context/AuthContext';
-import { ProgressRecord, Quiz } from '../types';
+import { ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import { buildSubjectSummary, getAccuracy, getBestRecord, getTotals } from '../utils/chartHelpers';
 import { subjectLabel } from '../utils/labels';
+import LevelBadge from '../components/LevelBadge';
+import TrophyCase from '../components/TrophyCase';
 
 function UserProfile() {
   const { user, logout } = useAuth();
   const [records, setRecords] = useState<ProgressRecord[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
+  const [trophySummary, setTrophySummary] = useState<TrophySummary | null>(null);
 
   useEffect(() => {
     async function load() {
-      const [quizData, progressData] = await Promise.all([fetchQuizzes(), fetchProgress()]);
+      const [quizData, progressData, xpData, trophyData] = await Promise.all([
+        fetchQuizzes(),
+        fetchProgress(),
+        fetchXpSummary(),
+        fetchTrophySummary(),
+      ]);
       setQuizzes(quizData);
       setRecords(progressData);
+      setXpSummary(xpData);
+      setTrophySummary(trophyData);
     }
 
     load();
@@ -37,6 +50,12 @@ function UserProfile() {
         </div>
         <button className="button secondary" type="button" onClick={logout}>ログアウト</button>
       </div>
+
+      <div className="panel">
+        <LevelBadge summary={xpSummary} variant="full" />
+      </div>
+
+      <TrophyCase summary={trophySummary} />
 
       <div className="stat-grid">
         <div className="stat-card">
