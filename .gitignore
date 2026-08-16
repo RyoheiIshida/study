@@ -11,3 +11,4 @@ backend/.env
 .edge-profile-tmp/
 *.log
 *-screenshot.png
+.tools/
