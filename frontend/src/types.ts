@@ -95,3 +95,13 @@ export interface GameState {
   finished: boolean;
   message: string;
 }
+
+export interface AnswerLogEntry {
+  questionId: string;
+  questionText: string;
+  userAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  timedOut: boolean;
+  explanation?: string;
+}

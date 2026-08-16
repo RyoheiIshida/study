@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { fetchQuizById, saveProgress } from '../api/quiz';
 import { fetchXpSummary } from '../api/xp';
 import { fetchTrophySummary } from '../api/trophies';
-import { GameState, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
+import { AnswerLogEntry, GameState, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import ScoreCard from '../components/ScoreCard';
 import TimerDisplay from '../components/TimerDisplay';
 import { normalizeReading } from '../utils/reading';
@@ -35,6 +35,7 @@ function QuestionChallenge() {
   const [trophiesBefore, setTrophiesBefore] = useState<TrophySummary | null>(null);
   const [trophiesAfter, setTrophiesAfter] = useState<TrophySummary | null>(null);
   const [retryKey, setRetryKey] = useState(0);
+  const [answerLog, setAnswerLog] = useState<AnswerLogEntry[]>([]);
 
   const isTextInput = quiz?.subject === 'Japanese';
 
@@ -62,6 +63,7 @@ function QuestionChallenge() {
     setTrophiesAfter(null);
     setQuiz(null);
     setRetryKey((key) => key + 1);
+    setAnswerLog([]);
   }
 
   const currentQuestion = useMemo(() => quiz?.questions[state.currentQuestionIndex], [quiz, state.currentQuestionIndex]);
@@ -119,6 +121,18 @@ function QuestionChallenge() {
     setLastExplanation(currentQuestion.explanation ?? '');
     setSecondsLeft(QUESTION_SECONDS);
     setTextAnswer('');
+    setAnswerLog((prev) => [
+      ...prev,
+      {
+        questionId: currentQuestion.id,
+        questionText: currentQuestion.text,
+        userAnswer: timedOut ? '(未回答)' : option,
+        correctAnswer: currentQuestion.answer,
+        isCorrect: correct,
+        timedOut,
+        explanation: currentQuestion.explanation,
+      },
+    ]);
   }
 
   useEffect(() => {
@@ -224,6 +238,19 @@ function QuestionChallenge() {
               </>
             )}
             {saveStatus === 'failed' && <p className="feedback">進捗を保存できませんでした。API接続を確認してください。</p>}
+            <div className="answer-review">
+              <p className="eyebrow">復習</p>
+              <ul className="answer-review-list">
+                {answerLog.map((entry, index) => (
+                  <li key={entry.questionId + index} className={entry.isCorrect ? 'answer-review-item correct' : 'answer-review-item incorrect'}>
+                    <p className="answer-review-question">問題 {index + 1}: {entry.questionText}</p>
+                    <p>あなたの回答: {entry.userAnswer || '(未回答)'} {entry.isCorrect ? '◯' : '✕'}</p>
+                    {!entry.isCorrect && <p>正しい回答: {entry.correctAnswer}</p>}
+                    {entry.explanation && <p className="answer-review-explanation">{entry.explanation}</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
             <div className="challenge-actions centered">
               <button className="button" onClick={() => navigate('/progress')} disabled={saveStatus === 'saving'}>
                 進捗を見る

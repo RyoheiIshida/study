@@ -553,6 +553,43 @@ select, input {
   padding: 14px;
 }
 
+.answer-review {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.answer-review-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.answer-review-item {
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+}
+
+.answer-review-item.correct {
+  background: #eaf6f2;
+  border-color: #bdd9d1;
+}
+
+.answer-review-item.incorrect {
+  background: #fdecec;
+  border-color: #f0bcbc;
+}
+
+.answer-review-question {
+  font-weight: 800;
+}
+
+.answer-review-explanation {
+  color: var(--muted);
+}
+
 .trophy-grid {
   display: grid;
   gap: 14px;
