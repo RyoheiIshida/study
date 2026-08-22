@@ -1,15 +1,64 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuizStore } from '../hooks/useQuizStore';
-import { Subject } from '../types';
+import { Quiz, Subject } from '../types';
 import { subjectLabel, gradeLabel } from '../utils/labels';
+import { findGroupByQuizId } from '../utils/quizGroups';
 import DailyQuestPanel from '../components/DailyQuestPanel';
 
 const subjectOptions: Array<Subject | 'All'> = ['All', 'Arithmetic', 'Math', 'English', 'Japanese'];
 
+interface QuizListEntry {
+  key: string;
+  subject: Subject;
+  grade: Quiz['grade'];
+  title: string;
+  description: string;
+  questionCount: number;
+  linkTo: string;
+}
+
+function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
+  const entries: QuizListEntry[] = [];
+  const seenGroupIds = new Set<string>();
+
+  for (const quiz of quizzes) {
+    const group = findGroupByQuizId(quiz.id);
+    if (!group) {
+      entries.push({
+        key: quiz.id,
+        subject: quiz.subject,
+        grade: quiz.grade,
+        title: quiz.title,
+        description: quiz.description,
+        questionCount: quiz.questions.length,
+        linkTo: `/challenge/${quiz.id}`,
+      });
+      continue;
+    }
+
+    if (seenGroupIds.has(group.id)) continue;
+    seenGroupIds.add(group.id);
+
+    const memberQuizzes = quizzes.filter((item) => group.members.some((member) => member.quizId === item.id));
+    entries.push({
+      key: group.id,
+      subject: group.subject,
+      grade: group.grade,
+      title: group.title,
+      description: group.description,
+      questionCount: memberQuizzes.reduce((total, item) => total + item.questions.length, 0),
+      linkTo: `/group/${group.id}`,
+    });
+  }
+
+  return entries;
+}
+
 function QuizList() {
   const { quizzes, isLoading, refreshQuizzes } = useQuizStore();
   const [selectedSubject, setSelectedSubject] = useState<Subject | 'All'>('All');
+  const entries = useMemo(() => buildQuizListEntries(quizzes), [quizzes]);
 
   useEffect(() => {
     refreshQuizzes(selectedSubject === 'All' ? undefined : selectedSubject);
@@ -45,21 +94,21 @@ function QuizList() {
         </div>
         {isLoading ? (
           <p>クイズを読み込み中...</p>
-        ) : quizzes.length === 0 ? (
+        ) : entries.length === 0 ? (
           <p>この条件に一致するクイズはまだありません。</p>
         ) : (
           <div className="grid-list">
-            {quizzes.map((quiz) => (
-              <article key={quiz.id} className="card quiz-card">
+            {entries.map((entry) => (
+              <article key={entry.key} className="card quiz-card">
                 <div className="card-header">
-                  <span className="tag">{subjectLabel(quiz.subject)}</span>
-                  <span className="tag muted">{gradeLabel(quiz.grade)}</span>
+                  <span className="tag">{subjectLabel(entry.subject)}</span>
+                  <span className="tag muted">{gradeLabel(entry.grade)}</span>
                 </div>
-                <h3>{quiz.title}</h3>
-                <p>{quiz.description}</p>
-                <p className="hint">問題数 {quiz.questions.length}問</p>
+                <h3>{entry.title}</h3>
+                <p>{entry.description}</p>
+                <p className="hint">問題数 {entry.questionCount}問</p>
                 <div className="card-actions">
-                  <Link to={`/challenge/${quiz.id}`} className="button">開始</Link>
+                  <Link to={entry.linkTo} className="button">開始</Link>
                 </div>
               </article>
             ))}

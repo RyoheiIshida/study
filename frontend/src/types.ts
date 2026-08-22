@@ -85,6 +85,12 @@ export interface XpSummary {
   levelUps: LevelUpEvent[];
 }
 
+export interface PointsSummary {
+  totalPoints: number;
+  totalCorrect: number;
+  totalAttempts: number;
+}
+
 export interface Trophy {
   quizId: string;
   quizTitle: string;

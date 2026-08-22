@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import QuizList from './pages/QuizList';
+import DifficultySelect from './pages/DifficultySelect';
 import QuestionChallenge from './pages/QuestionChallenge';
 import Progress from './pages/Progress';
 import Login from './pages/Login';
@@ -9,22 +10,29 @@ import Analytics from './pages/Analytics';
 import UserProfile from './pages/UserProfile';
 import { RequireAuth, useAuth } from './context/AuthContext';
 import { fetchXpSummary } from './api/xp';
-import { XpSummary } from './types';
+import { fetchPointsSummary } from './api/points';
+import { PointsSummary, XpSummary } from './types';
 import LevelBadge from './components/LevelBadge';
+import PointsBadge from './components/PointsBadge';
 
 function App() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
+  const [pointsSummary, setPointsSummary] = useState<PointsSummary | null>(null);
 
   useEffect(() => {
     if (!user) {
       setXpSummary(null);
+      setPointsSummary(null);
       return;
     }
     let cancelled = false;
     fetchXpSummary().then((summary) => {
       if (!cancelled) setXpSummary(summary);
+    });
+    fetchPointsSummary().then((summary) => {
+      if (!cancelled) setPointsSummary(summary);
     });
     return () => {
       cancelled = true;
@@ -52,6 +60,7 @@ function App() {
           {user ? (
             <>
               <LevelBadge summary={xpSummary} />
+              <PointsBadge summary={pointsSummary} />
               <span className="user-chip">{user.username}</span>
               <button className="button secondary" type="button" onClick={logout}>
                 ログアウト
@@ -70,6 +79,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<RequireAuth><QuizList /></RequireAuth>} />
+          <Route path="/group/:groupId" element={<RequireAuth><DifficultySelect /></RequireAuth>} />
           <Route path="/challenge/:quizId" element={<RequireAuth><QuestionChallenge /></RequireAuth>} />
           <Route path="/progress" element={<RequireAuth><Progress /></RequireAuth>} />
           <Route path="/analytics" element={<RequireAuth><Analytics /></RequireAuth>} />

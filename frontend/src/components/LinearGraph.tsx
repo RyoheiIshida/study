@@ -20,10 +20,19 @@ function getLinePoints(option: GraphOption) {
   return `${toSvg(VIEW_MIN)},${toSvg(-firstY)} ${toSvg(VIEW_MAX)},${toSvg(-lastY)}`;
 }
 
+function getXIntercept(option: GraphOption): number | null {
+  if (option.slope === 0) return null;
+  return -option.intercept / option.slope;
+}
+
 function LinearGraph({ option, size = 'small' }: LinearGraphProps) {
   const axis = toSvg(0);
   const graphSize = size === 'large' ? 'large' : 'small';
   const label = `傾き${option.slope}、切片${option.intercept}の直線`;
+  const xIntercept = getXIntercept(option);
+  const showYPoint = option.intercept >= VIEW_MIN && option.intercept <= VIEW_MAX;
+  const showXPoint = xIntercept !== null && xIntercept >= VIEW_MIN && xIntercept <= VIEW_MAX;
+  const sameAtOrigin = showXPoint && showYPoint && xIntercept === 0 && option.intercept === 0;
 
   return (
     <svg className={`linear-graph ${graphSize}`} viewBox="0 0 200 200" role="img" aria-label={label}>
@@ -37,6 +46,12 @@ function LinearGraph({ option, size = 'small' }: LinearGraphProps) {
       <line x1={PADDING} y1={axis} x2={PADDING + PLOT_SIZE} y2={axis} className="graph-axis" />
       <line x1={axis} y1={PADDING} x2={axis} y2={PADDING + PLOT_SIZE} className="graph-axis" />
       <polyline points={getLinePoints(option)} className="graph-line" />
+      {showYPoint && (
+        <circle cx={axis} cy={toSvg(-option.intercept)} r={3} className="graph-intersection-point" />
+      )}
+      {showXPoint && !sameAtOrigin && (
+        <circle cx={toSvg(xIntercept as number)} cy={axis} r={3} className="graph-intersection-point" />
+      )}
       <text x="181" y={axis - 5} className="graph-label">x</text>
       <text x={axis + 5} y="18" className="graph-label">y</text>
     </svg>

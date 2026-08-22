@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { fetchXpSummary } from '../api/xp';
+import { fetchPointsSummary } from '../api/points';
 import { fetchTrophySummary } from '../api/trophies';
 import { useAuth } from '../context/AuthContext';
-import { ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
+import { PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import { buildSubjectSummary, getAccuracy, getBestRecord, getTotals } from '../utils/chartHelpers';
 import { subjectLabel } from '../utils/labels';
 import LevelBadge from '../components/LevelBadge';
+import PointsBadge from '../components/PointsBadge';
 import TrophyCase from '../components/TrophyCase';
 
 function UserProfile() {
@@ -14,19 +16,22 @@ function UserProfile() {
   const [records, setRecords] = useState<ProgressRecord[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
+  const [pointsSummary, setPointsSummary] = useState<PointsSummary | null>(null);
   const [trophySummary, setTrophySummary] = useState<TrophySummary | null>(null);
 
   useEffect(() => {
     async function load() {
-      const [quizData, progressData, xpData, trophyData] = await Promise.all([
+      const [quizData, progressData, xpData, pointsData, trophyData] = await Promise.all([
         fetchQuizzes(),
         fetchProgress(),
         fetchXpSummary(),
+        fetchPointsSummary(),
         fetchTrophySummary(),
       ]);
       setQuizzes(quizData);
       setRecords(progressData);
       setXpSummary(xpData);
+      setPointsSummary(pointsData);
       setTrophySummary(trophyData);
     }
 
@@ -53,6 +58,10 @@ function UserProfile() {
 
       <div className="panel">
         <LevelBadge summary={xpSummary} variant="full" />
+      </div>
+
+      <div className="panel">
+        <PointsBadge summary={pointsSummary} variant="full" />
       </div>
 
       <TrophyCase summary={trophySummary} />

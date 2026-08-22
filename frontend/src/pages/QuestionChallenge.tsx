@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchQuizById, saveProgress } from '../api/quiz';
 import { fetchXpSummary } from '../api/xp';
+import { fetchPointsSummary } from '../api/points';
 import { fetchTrophySummary } from '../api/trophies';
-import { AnswerLogEntry, GameState, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
+import { AnswerLogEntry, GameState, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import ScoreCard from '../components/ScoreCard';
 import TimerDisplay from '../components/TimerDisplay';
 import LinearGraph from '../components/LinearGraph';
@@ -38,6 +39,8 @@ function QuestionChallenge() {
   const [textAnswer, setTextAnswer] = useState('');
   const [xpBefore, setXpBefore] = useState<XpSummary | null>(null);
   const [xpAfter, setXpAfter] = useState<XpSummary | null>(null);
+  const [pointsBefore, setPointsBefore] = useState<PointsSummary | null>(null);
+  const [pointsAfter, setPointsAfter] = useState<PointsSummary | null>(null);
   const [trophiesBefore, setTrophiesBefore] = useState<TrophySummary | null>(null);
   const [trophiesAfter, setTrophiesAfter] = useState<TrophySummary | null>(null);
   const [retryKey, setRetryKey] = useState(0);
@@ -57,6 +60,7 @@ function QuestionChallenge() {
       }
     });
     fetchXpSummary().then(setXpBefore);
+    fetchPointsSummary().then(setPointsBefore);
     fetchTrophySummary().then(setTrophiesBefore);
   }, [quizId, navigate, retryKey]);
 
@@ -68,6 +72,7 @@ function QuestionChallenge() {
     setSaveStatus('idle');
     setTextAnswer('');
     setXpAfter(null);
+    setPointsAfter(null);
     setTrophiesAfter(null);
     setQuiz(null);
     setRetryKey((key) => key + 1);
@@ -193,6 +198,8 @@ function QuestionChallenge() {
         await saveProgress(record);
         const summary = await fetchXpSummary();
         setXpAfter(summary);
+        const pointsSummary = await fetchPointsSummary();
+        setPointsAfter(pointsSummary);
         if (record.correct === record.total) {
           const trophySummary = await fetchTrophySummary();
           setTrophiesAfter(trophySummary);
@@ -253,6 +260,15 @@ function QuestionChallenge() {
                     {xpBefore && xpAfter.level > xpBefore.level && (
                       <p className="feedback">🎉 レベルアップ！ Lv.{xpAfter.level} になりました。</p>
                     )}
+                  </div>
+                )}
+                {pointsAfter && (
+                  <div className="points-result">
+                    <p className="eyebrow">ポイント</p>
+                    <p>
+                      獲得ポイント: +{Math.max(pointsAfter.totalPoints - (pointsBefore?.totalPoints ?? pointsAfter.totalPoints), 0)}pt
+                      {' '}・ 累計{pointsAfter.totalPoints}pt
+                    </p>
                   </div>
                 )}
                 {state.correctCount === quiz.questions.length && (
