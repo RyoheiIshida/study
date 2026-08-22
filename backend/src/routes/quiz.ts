@@ -44,6 +44,8 @@ router.post('/', async (req, res) => {
       id: string;
       text: string;
       answer: string;
+      options?: string[];
+      graphOptions?: Array<{ id: string; slope: number; intercept: number }>;
       explanation?: string;
       order?: number;
     }>;
@@ -66,6 +68,8 @@ router.post('/', async (req, res) => {
           id: question.id,
           text: question.text,
           answer: question.answer,
+          options: question.options ?? [],
+          graphOptions: question.graphOptions ?? [],
           explanation: question.explanation ?? '',
           order: question.order ?? index,
         })),

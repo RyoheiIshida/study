@@ -1,21 +1,19 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useQuizStore } from '../hooks/useQuizStore';
-import { Grade, Subject } from '../types';
-import { gradeLabel, subjectLabel } from '../utils/labels';
+import { Subject } from '../types';
+import { subjectLabel, gradeLabel } from '../utils/labels';
 import DailyQuestPanel from '../components/DailyQuestPanel';
 
-const subjectOptions: Subject[] = ['Arithmetic', 'Math', 'English', 'Japanese'];
-const gradeOptions: Grade[] = ['Elementary', 'Middle School'];
+const subjectOptions: Array<Subject | 'All'> = ['All', 'Arithmetic', 'Math', 'English', 'Japanese'];
 
 function QuizList() {
   const { quizzes, isLoading, refreshQuizzes } = useQuizStore();
-  const [selectedSubject, setSelectedSubject] = useState<Subject>('Arithmetic');
-  const [selectedGrade, setSelectedGrade] = useState<Grade>('Elementary');
+  const [selectedSubject, setSelectedSubject] = useState<Subject | 'All'>('All');
 
   useEffect(() => {
-    refreshQuizzes(selectedSubject, selectedGrade);
-  }, [refreshQuizzes, selectedSubject, selectedGrade]);
+    refreshQuizzes(selectedSubject === 'All' ? undefined : selectedSubject);
+  }, [refreshQuizzes, selectedSubject]);
 
   return (
     <section className="page-stack">
@@ -28,21 +26,12 @@ function QuizList() {
         <div className="filters">
           <label>
             科目
-            <select value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value as Subject)}>
+            <select value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value as Subject | 'All')}>
               {subjectOptions.map((subject) => (
-                <option key={subject} value={subject}>{subjectLabel(subject)}</option>
+                <option key={subject} value={subject}>{subject === 'All' ? 'すべて' : subjectLabel(subject)}</option>
               ))}
             </select>
           </label>
-          <label>
-            学年
-            <select value={selectedGrade} onChange={(event) => setSelectedGrade(event.target.value as Grade)}>
-              {gradeOptions.map((grade) => (
-                <option key={grade} value={grade}>{gradeLabel(grade)}</option>
-              ))}
-            </select>
-          </label>
-          <Link to="/analytics" className="button secondary">分析を見る</Link>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { ProgressRecord, Quiz } from '../types';
+import { DailyXpPoint, ProgressRecord, Quiz } from '../types';
 
 export interface TrendPoint {
   label: string;
@@ -79,4 +79,74 @@ export function getBestRecord(records: ProgressRecord[], quizzes: Quiz[]) {
     title: quiz?.title ?? 'Quiz',
     accuracy: getAccuracy(best.correct, best.total),
   };
+}
+
+export interface CalendarDay {
+  date: string;
+  questions: number;
+  xp: number;
+  level: number;
+  isToday: boolean;
+  isFuture: boolean;
+}
+
+export interface CalendarWeek {
+  days: CalendarDay[];
+  monthLabel: string | null;
+}
+
+function toDateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+export function buildActivityCalendar(dailyXp: DailyXpPoint[], weeks = 18): CalendarWeek[] {
+  const activityMap = new Map(dailyXp.map((point) => [point.date, point]));
+  const maxQuestions = Math.max(1, ...dailyXp.map((point) => point.questions));
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayKey = toDateKey(today);
+
+  const weekEnd = new Date(today);
+  weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
+  const start = new Date(weekEnd);
+  start.setDate(start.getDate() - weeks * 7 + 1);
+
+  const columns: CalendarWeek[] = [];
+  let previousMonth = -1;
+  const cursor = new Date(start);
+  for (let w = 0; w < weeks; w++) {
+    const weekStartMonth = cursor.getMonth();
+    const days: CalendarDay[] = [];
+    for (let d = 0; d < 7; d++) {
+      const key = toDateKey(cursor);
+      const point = activityMap.get(key);
+      const questions = point?.questions ?? 0;
+      days.push({
+        date: key,
+        questions,
+        xp: point?.xp ?? 0,
+        level: questions === 0 ? 0 : Math.min(4, Math.ceil((questions / maxQuestions) * 4)),
+        isToday: key === todayKey,
+        isFuture: cursor > today,
+      });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    let monthLabel: string | null = null;
+    if (weekStartMonth !== previousMonth) {
+      monthLabel = `${weekStartMonth + 1}月`;
+      previousMonth = weekStartMonth;
+    }
+    columns.push({ days, monthLabel });
+  }
+  return columns;
+}
+
+export function countRecentStudyDays(dailyXp: DailyXpPoint[], days: number): number {
+  const cutoff = new Date();
+  cutoff.setHours(0, 0, 0, 0);
+  cutoff.setDate(cutoff.getDate() - (days - 1));
+  const cutoffKey = toDateKey(cutoff);
+  return dailyXp.filter((point) => point.date >= cutoffKey).length;
 }

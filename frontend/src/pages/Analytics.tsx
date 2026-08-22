@@ -2,7 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { fetchXpSummary } from '../api/xp';
 import { ProgressRecord, Quiz, XpSummary } from '../types';
-import { buildSubjectSummary, buildTrend, getAccuracy, getTotals } from '../utils/chartHelpers';
+import {
+  buildActivityCalendar,
+  buildSubjectSummary,
+  buildTrend,
+  countRecentStudyDays,
+  getAccuracy,
+  getTotals,
+} from '../utils/chartHelpers';
 import { subjectLabel } from '../utils/labels';
 
 function Analytics() {
@@ -38,6 +45,8 @@ function Analytics() {
     () => new Set((xpSummary?.levelUps ?? []).map((event) => event.at.slice(0, 10))),
     [xpSummary],
   );
+  const calendarWeeks = useMemo(() => buildActivityCalendar(xpTrend), [xpTrend]);
+  const studyDaysLast30 = useMemo(() => countRecentStudyDays(xpTrend, 30), [xpTrend]);
 
   return (
     <section className="page-stack">
@@ -62,7 +71,61 @@ function Analytics() {
             <span>現在のレベル</span>
             <strong>Lv.{xpSummary?.level ?? 1}</strong>
           </div>
+          <div className="stat-card">
+            <span>学習した日数</span>
+            <strong>{xpSummary?.studyDays ?? 0}日</strong>
+          </div>
+          <div className="stat-card">
+            <span>直近30日の学習日数</span>
+            <strong>{studyDaysLast30}日</strong>
+          </div>
         </div>
+      </div>
+
+      <div className="panel">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">学習カレンダー</p>
+            <h2>何日にどれくらい取り組んだか</h2>
+            <p>マスの濃さがその日に解いた問題数を表します。カーソルを合わせると詳細が見られます。</p>
+          </div>
+        </div>
+        {loading ? (
+          <p>学習履歴を読み込み中...</p>
+        ) : xpTrend.length === 0 ? (
+          <p>学習履歴はまだありません。クイズを完了すると記録が表示されます。</p>
+        ) : (
+          <>
+            <div className="calendar-heatmap" role="img" aria-label="学習カレンダー">
+              {calendarWeeks.map((week) => (
+                <div className="calendar-week" key={week.days[0].date}>
+                  <span className="calendar-month-label">{week.monthLabel ?? ''}</span>
+                  <div className="calendar-week-days">
+                    {week.days.map((day) => (
+                      <span
+                        key={day.date}
+                        className={`calendar-day${day.isToday ? ' calendar-day-today' : ''}${
+                          day.isFuture ? ' calendar-day-future' : ''
+                        }`}
+                        data-level={day.level}
+                        title={`${day.date}：問題${day.questions}問 / ${day.xp}XP`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="calendar-legend">
+              <span>少ない</span>
+              <span className="calendar-day" data-level={0} />
+              <span className="calendar-day" data-level={1} />
+              <span className="calendar-day" data-level={2} />
+              <span className="calendar-day" data-level={3} />
+              <span className="calendar-day" data-level={4} />
+              <span>多い</span>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="panel">

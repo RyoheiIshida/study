@@ -22,14 +22,18 @@ router.get('/', async (req, res) => {
   let cumulativeXp = 0;
   let previousLevel = 1;
   const levelUps: Array<{ level: number; at: string }> = [];
-  const dailyMap = new Map<string, number>();
+  const dailyMap = new Map<string, { xp: number; questions: number; attempts: number }>();
 
   for (const attempt of attempts) {
     const xp = computeAttemptXp(attempt);
     cumulativeXp += xp;
 
     const dateKey = jstDateKey(attempt.playedAt);
-    dailyMap.set(dateKey, (dailyMap.get(dateKey) ?? 0) + xp);
+    const entry = dailyMap.get(dateKey) ?? { xp: 0, questions: 0, attempts: 0 };
+    entry.xp += xp;
+    entry.questions += attempt.total;
+    entry.attempts += 1;
+    dailyMap.set(dateKey, entry);
 
     const { level } = getLevelProgress(cumulativeXp);
     while (previousLevel < level) {
@@ -41,9 +45,15 @@ router.get('/', async (req, res) => {
   let runningCumulative = 0;
   const dailyXp = Array.from(dailyMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, xp]) => {
-      runningCumulative += xp;
-      return { date, xp, cumulativeXp: runningCumulative };
+    .map(([date, entry]) => {
+      runningCumulative += entry.xp;
+      return {
+        date,
+        xp: entry.xp,
+        cumulativeXp: runningCumulative,
+        questions: entry.questions,
+        attempts: entry.attempts,
+      };
     });
 
   const progress = getLevelProgress(cumulativeXp);
@@ -51,6 +61,7 @@ router.get('/', async (req, res) => {
   res.json({
     ...progress,
     attemptCount: attempts.length,
+    studyDays: dailyMap.size,
     dailyXp,
     levelUps,
   });

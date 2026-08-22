@@ -20,24 +20,40 @@ async function fallbackXpSummary(): Promise<XpSummary> {
     (a, b) => new Date(a.lastPlayed).getTime() - new Date(b.lastPlayed).getTime(),
   );
 
-  const dailyMap = new Map<string, number>();
+  const dailyMap = new Map<string, { xp: number; questions: number; attempts: number }>();
   let totalXp = 0;
   for (const record of sorted) {
     const xp = computeAttemptXp(record);
     totalXp += xp;
     const dateKey = record.lastPlayed.slice(0, 10);
-    dailyMap.set(dateKey, (dailyMap.get(dateKey) ?? 0) + xp);
+    const entry = dailyMap.get(dateKey) ?? { xp: 0, questions: 0, attempts: 0 };
+    entry.xp += xp;
+    entry.questions += record.total;
+    entry.attempts += 1;
+    dailyMap.set(dateKey, entry);
   }
 
   let runningCumulative = 0;
   const dailyXp = Array.from(dailyMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, xp]) => {
-      runningCumulative += xp;
-      return { date, xp, cumulativeXp: runningCumulative };
+    .map(([date, entry]) => {
+      runningCumulative += entry.xp;
+      return {
+        date,
+        xp: entry.xp,
+        cumulativeXp: runningCumulative,
+        questions: entry.questions,
+        attempts: entry.attempts,
+      };
     });
 
-  return { ...getLevelProgress(totalXp), attemptCount: records.length, dailyXp, levelUps: [] };
+  return {
+    ...getLevelProgress(totalXp),
+    attemptCount: records.length,
+    studyDays: dailyMap.size,
+    dailyXp,
+    levelUps: [],
+  };
 }
 
 export async function fetchXpSummary(): Promise<XpSummary> {

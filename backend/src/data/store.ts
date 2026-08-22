@@ -2,6 +2,8 @@ export type Question = {
   id: string;
   text: string;
   answer: string;
+  options?: string[];
+  graphOptions?: Array<{ id: string; slope: number; intercept: number }>;
   explanation?: string;
 };
 
@@ -129,6 +131,105 @@ export const defaultQuizzes: Quiz[] = [
       { id: 'q78', text: '45 / 9 = ?', answer: '5', explanation: '45を9等分すると1つあたり5になります。' },
       { id: 'q79', text: '33 / 11 = ?', answer: '3', explanation: '33を11等分すると1つあたり3になります。' },
       { id: 'q80', text: '42 / 6 = ?', answer: '7', explanation: '42を6等分すると1つあたり7になります。' },
+    ],
+  },
+  {
+    id: 'linear-graph-1',
+    title: '一次関数のグラフ',
+    subject: 'Math',
+    grade: 'Middle School',
+    description: '式から傾きと切片を読み取り、対応するグラフを選びましょう。',
+    questions: [
+      {
+        id: 'linear-1',
+        text: '直線 y = 2x + 3 のグラフとして正しいものを選びましょう。',
+        answer: 'A',
+        graphOptions: [
+          { id: 'A', slope: 2, intercept: 3 },
+          { id: 'B', slope: 3, intercept: 2 },
+          { id: 'C', slope: -2, intercept: 3 },
+          { id: 'D', slope: 2, intercept: -3 },
+        ],
+        options: [
+          'A: 切片が 3 で、x が 1 増えるごとに y は 2 増える直線',
+          'B: 切片が 2 で、x が 1 増えるごとに y は 3 増える直線',
+          'C: 切片が 3 で、x が 1 増えるごとに y は 2 減る直線',
+          'D: 切片が -3 で、x が 1 増えるごとに y は 2 増える直線',
+        ],
+        explanation: '一次関数 y = ax + b では、a が傾き、b が切片です。y = 2x + 3 は傾き 2、切片 3 です。',
+      },
+      {
+        id: 'linear-2',
+        text: '直線 y = -x + 4 のグラフとして正しいものを選びましょう。',
+        answer: 'B',
+        graphOptions: [
+          { id: 'A', slope: 1, intercept: 4 },
+          { id: 'B', slope: -1, intercept: 4 },
+          { id: 'C', slope: -1, intercept: -4 },
+          { id: 'D', slope: 2, intercept: 4 },
+        ],
+        options: [
+          'A: 切片が 4 で、x が 1 増えるごとに y は 1 増える直線',
+          'B: 切片が 4 で、x が 1 増えるごとに y は 1 減る直線',
+          'C: 切片が -4 で、x が 1 増えるごとに y は 1 減る直線',
+          'D: 切片が 4 で、x が 1 増えるごとに y は 2 増える直線',
+        ],
+        explanation: 'y = -x + 4 は傾きが -1、切片が 4 なので、x が増えると y は 1 ずつ減ります。',
+      },
+      {
+        id: 'linear-3',
+        text: '直線 y = 3x - 2 のグラフとして正しいものを選びましょう。',
+        answer: 'C',
+        graphOptions: [
+          { id: 'A', slope: 2, intercept: -2 },
+          { id: 'B', slope: 3, intercept: 2 },
+          { id: 'C', slope: 3, intercept: -2 },
+          { id: 'D', slope: -2, intercept: 3 },
+        ],
+        options: [
+          'A: 切片が -2 で、x が 1 増えるごとに y は 2 増える直線',
+          'B: 切片が 2 で、x が 1 増えるごとに y は 3 増える直線',
+          'C: 切片が -2 で、x が 1 増えるごとに y は 3 増える直線',
+          'D: 切片が 3 で、x が 1 増えるごとに y は 2 減る直線',
+        ],
+        explanation: '傾きは 3、切片は -2 です。x が 1 増えると y は 3 増え、y 軸との交点は -2 です。',
+      },
+      {
+        id: 'linear-4',
+        text: '直線 y = 1/2 x + 1 のグラフとして正しいものを選びましょう。',
+        answer: 'D',
+        graphOptions: [
+          { id: 'A', slope: 1, intercept: 1 },
+          { id: 'B', slope: -1, intercept: 1 },
+          { id: 'C', slope: -0.5, intercept: 2 },
+          { id: 'D', slope: 0.5, intercept: 1 },
+        ],
+        options: [
+          'A: 切片が 1 で、x が 2 増えるごとに y は 2 増える直線',
+          'B: 切片が 1 で、x が 2 増えるごとに y は 2 減る直線',
+          'C: 切片が 2 で、x が 1 増えるごとに y は 1/2 減る直線',
+          'D: 切片が 1 で、x が 2 増えるごとに y は 1 増える直線',
+        ],
+        explanation: '傾きが 1/2 なので、x が 2 増えると y は 1 増えます。切片は 1 です。',
+      },
+      {
+        id: 'linear-5',
+        text: '直線 y = -2x + 5 のグラフとして正しいものを選びましょう。',
+        answer: 'A',
+        graphOptions: [
+          { id: 'A', slope: -2, intercept: 5 },
+          { id: 'B', slope: 2, intercept: -5 },
+          { id: 'C', slope: 2, intercept: 5 },
+          { id: 'D', slope: -5, intercept: 2 },
+        ],
+        options: [
+          'A: 切片が 5 で、x が 1 増えるごとに y は 2 減る直線',
+          'B: 切片が -5 で、x が 1 増えるごとに y は 2 増える直線',
+          'C: 切片が 5 で、x が 1 増えるごとに y は 2 増える直線',
+          'D: 切片が 2 で、x が 1 増えるごとに y は 5 減る直線',
+        ],
+        explanation: 'y = -2x + 5 は傾き -2、切片 5 です。x が 1 増えると y は 2 減ります。',
+      },
     ],
   },
   {

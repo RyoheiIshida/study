@@ -39,6 +39,8 @@ model Question {
   quizId      String
   text        String
   answer      String
+  options     String[] @default([])
+  graphOptions Json    @default("[]")
   explanation String?
   order       Int
 }

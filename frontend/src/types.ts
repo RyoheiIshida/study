@@ -8,7 +8,14 @@ export interface Question {
   text: string;
   answer: string;
   options?: string[];
+  graphOptions?: GraphOption[];
   explanation?: string;
+}
+
+export interface GraphOption {
+  id: string;
+  slope: number;
+  intercept: number;
 }
 
 export interface AuthUser {
@@ -57,6 +64,8 @@ export interface DailyXpPoint {
   date: string;
   xp: number;
   cumulativeXp: number;
+  questions: number;
+  attempts: number;
 }
 
 export interface LevelUpEvent {
@@ -71,6 +80,7 @@ export interface XpSummary {
   xpForNextLevel: number;
   progressPercent: number;
   attemptCount: number;
+  studyDays: number;
   dailyXp: DailyXpPoint[];
   levelUps: LevelUpEvent[];
 }

@@ -26,6 +26,8 @@ async function main() {
         update: {
           text: question.text,
           answer: question.answer,
+          options: question.options ?? [],
+          graphOptions: question.graphOptions ?? [],
           explanation: question.explanation ?? '',
           order: index,
         },
@@ -34,6 +36,8 @@ async function main() {
           quizId: quiz.id,
           text: question.text,
           answer: question.answer,
+          options: question.options ?? [],
+          graphOptions: question.graphOptions ?? [],
           explanation: question.explanation ?? '',
           order: index,
         },

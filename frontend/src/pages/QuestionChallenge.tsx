@@ -6,10 +6,16 @@ import { fetchTrophySummary } from '../api/trophies';
 import { AnswerLogEntry, GameState, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import ScoreCard from '../components/ScoreCard';
 import TimerDisplay from '../components/TimerDisplay';
+import LinearGraph from '../components/LinearGraph';
 import { normalizeReading } from '../utils/reading';
 import { pickSessionQuestions } from '../utils/shuffle';
 
 const QUESTION_SECONDS = 30;
+
+function getAnswerValue(option: string): string {
+  const label = option.match(/^([A-D]):\s*/)?.[1];
+  return label ?? option;
+}
 
 const initialState: GameState = {
   currentQuestionIndex: 0,
@@ -36,6 +42,8 @@ function QuestionChallenge() {
   const [trophiesAfter, setTrophiesAfter] = useState<TrophySummary | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const [answerLog, setAnswerLog] = useState<AnswerLogEntry[]>([]);
+  const [awaitingNext, setAwaitingNext] = useState(false);
+  const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false);
 
   const isTextInput = quiz?.subject === 'Japanese';
 
@@ -64,9 +72,12 @@ function QuestionChallenge() {
     setQuiz(null);
     setRetryKey((key) => key + 1);
     setAnswerLog([]);
+    setAwaitingNext(false);
+    setLastAnswerCorrect(false);
   }
 
   const currentQuestion = useMemo(() => quiz?.questions[state.currentQuestionIndex], [quiz, state.currentQuestionIndex]);
+  const isGraphQuestion = quiz?.subject === 'Math' && Boolean(currentQuestion?.graphOptions?.length);
 
   const answerOptions = useMemo(() => {
     if (!currentQuestion || isTextInput) return [];
@@ -98,25 +109,25 @@ function QuestionChallenge() {
   }, [currentQuestion, isTextInput]);
 
   function submitAnswer(option: string, timedOut = false) {
-    if (!quiz || !currentQuestion || state.finished) return;
-    const correct = !timedOut && normalizeReading(option) === normalizeReading(currentQuestion.answer);
+    if (!quiz || !currentQuestion || state.finished || awaitingNext) return;
+    const correct = !timedOut && normalizeReading(getAnswerValue(option)) === normalizeReading(currentQuestion.answer);
 
     setState((prev) => {
       const streak = correct ? prev.streak + 1 : 0;
       const score = prev.score + (correct ? 100 + streak * 20 + secondsLeft : 0);
-      const nextIndex = prev.currentQuestionIndex + 1;
-      const finished = nextIndex >= quiz.questions.length;
       const message = correct ? '正解です。この調子で続けましょう。' : `正解: ${currentQuestion.answer}`;
       return {
-        currentQuestionIndex: nextIndex,
+        currentQuestionIndex: prev.currentQuestionIndex,
         correctCount: prev.correctCount + (correct ? 1 : 0),
         streak,
         score,
-        finished,
+        finished: false,
         message,
       };
     });
 
+    setLastAnswerCorrect(correct);
+    setAwaitingNext(true);
     setFeedback(correct ? '正解' : timedOut ? `時間切れです。正解: ${currentQuestion.answer}` : `不正解です。正解: ${currentQuestion.answer}`);
     setLastExplanation(currentQuestion.explanation ?? '');
     setSecondsLeft(QUESTION_SECONDS);
@@ -135,8 +146,21 @@ function QuestionChallenge() {
     ]);
   }
 
+  function advanceAfterAnswer() {
+    if (!quiz || !awaitingNext) return;
+    const isLastQuestion = state.currentQuestionIndex + 1 >= quiz.questions.length;
+    setAwaitingNext(false);
+    setFeedback('');
+    setLastExplanation('');
+    setState((prev) => ({
+      ...prev,
+      currentQuestionIndex: prev.currentQuestionIndex + 1,
+      finished: isLastQuestion,
+    }));
+  }
+
   useEffect(() => {
-    if (state.finished || !currentQuestion) return;
+    if (state.finished || awaitingNext || !currentQuestion) return;
     const timer = window.setInterval(() => {
       setSecondsLeft((value) => {
         if (value <= 1) {
@@ -149,7 +173,7 @@ function QuestionChallenge() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [currentQuestion, state.finished]);
+  }, [awaitingNext, currentQuestion, state.finished]);
 
   useEffect(() => {
     if (!quiz || !state.finished || saveStatus !== 'idle') return;
@@ -189,6 +213,14 @@ function QuestionChallenge() {
   return (
     <section>
       <div className="panel challenge-panel">
+        {awaitingNext && (
+          <button type="button" className="answer-result-overlay" onClick={advanceAfterAnswer} aria-label="次の問題へ進む">
+            <span className={lastAnswerCorrect ? 'answer-result-mark correct' : 'answer-result-mark incorrect'}>
+              {lastAnswerCorrect ? '○' : '×'}
+            </span>
+            <span className="answer-result-hint">もう一度クリックまたはタップすると次の問題へ</span>
+          </button>
+        )}
         <div className="challenge-header">
           <div>
             <p className="eyebrow">チャレンジ</p>
@@ -284,6 +316,15 @@ function QuestionChallenge() {
                 />
                 <button type="submit" className="button">回答する</button>
               </form>
+            ) : isGraphQuestion && currentQuestion?.graphOptions ? (
+              <div className="graph-answer-buttons" role="group" aria-label="グラフの選択肢">
+                {currentQuestion.graphOptions.map((option) => (
+                  <button key={option.id} type="button" className="graph-option-button" onClick={() => submitAnswer(option.id)}>
+                    <span className="graph-option-label">{option.id}</span>
+                    <LinearGraph option={option} />
+                  </button>
+                ))}
+              </div>
             ) : (
               <div className="answer-buttons">
                 {answerOptions.map((option) => (
