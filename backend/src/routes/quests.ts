@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 import { dailyQuestDefinitions, QuestStats } from '../data/quests.js';
 
@@ -16,7 +17,7 @@ function getJstDayRangeUtc(now = new Date()) {
   return { startUtc, endUtc };
 }
 
-router.get('/today', async (req, res) => {
+router.get('/today', asyncHandler(async (req, res) => {
   const { startUtc, endUtc } = getJstDayRangeUtc();
 
   const attempts = await prisma.quizAttempt.findMany({
@@ -42,6 +43,6 @@ router.get('/today', async (req, res) => {
   }));
 
   res.json(quests);
-});
+}));
 
 export default router;

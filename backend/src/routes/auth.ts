@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { signToken, requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 
 const router = Router();
 
-router.post('/register', async (req, res) => {
+router.post('/register', asyncHandler(async (req, res) => {
   const { username, password } = req.body as { username?: string; password?: string };
   if (!username || !password) {
     return res.status(400).json({ message: 'Username and password are required.' });
@@ -21,9 +22,9 @@ router.post('/register', async (req, res) => {
   const token = signToken({ username });
 
   return res.status(201).json({ token, user: { username } });
-});
+}));
 
-router.post('/login', async (req, res) => {
+router.post('/login', asyncHandler(async (req, res) => {
   const { username, password } = req.body as { username?: string; password?: string };
   if (!username || !password) {
     return res.status(400).json({ message: 'Username and password are required.' });
@@ -41,7 +42,7 @@ router.post('/login', async (req, res) => {
 
   const token = signToken({ username });
   return res.json({ token, user: { username } });
-});
+}));
 
 router.get('/me', requireAuth, (req, res) => {
   return res.json({ user: { username: req.user!.username } });

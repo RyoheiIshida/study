@@ -59,9 +59,9 @@ function QuestionChallenge() {
         setQuiz({ ...result, questions: pickSessionQuestions(result.questions) });
       }
     });
-    fetchXpSummary().then(setXpBefore);
-    fetchPointsSummary().then(setPointsBefore);
-    fetchTrophySummary().then(setTrophiesBefore);
+    fetchXpSummary().then(setXpBefore).catch(() => setXpBefore(null));
+    fetchPointsSummary().then(setPointsBefore).catch(() => setPointsBefore(null));
+    fetchTrophySummary().then(setTrophiesBefore).catch(() => setTrophiesBefore(null));
   }, [quizId, navigate, retryKey]);
 
   function retryChallenge() {

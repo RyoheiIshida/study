@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 import { computeAttemptXp, getLevelProgress } from '../lib/leveling.js';
 
@@ -13,7 +14,7 @@ function jstDateKey(date: Date) {
   return jst.toISOString().slice(0, 10);
 }
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const attempts = await prisma.quizAttempt.findMany({
     where: { username: req.user!.username },
     orderBy: { playedAt: 'asc' },
@@ -65,6 +66,6 @@ router.get('/', async (req, res) => {
     dailyXp,
     levelUps,
   });
-});
+}));
 
 export default router;

@@ -17,18 +17,23 @@ function Analytics() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [xpError, setXpError] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [quizData, progressData, xpData] = await Promise.all([
-        fetchQuizzes(),
-        fetchProgress(),
-        fetchXpSummary(),
-      ]);
+      const [quizData, progressData] = await Promise.all([fetchQuizzes(), fetchProgress()]);
       setQuizzes(quizData);
       setRecords(progressData);
-      setXpSummary(xpData);
+
+      try {
+        setXpSummary(await fetchXpSummary());
+        setXpError(false);
+      } catch {
+        setXpSummary(null);
+        setXpError(true);
+      }
+
       setLoading(false);
     }
 
@@ -54,6 +59,7 @@ function Analytics() {
         <p className="eyebrow">分析</p>
         <h2>学習の傾向</h2>
         <p>これまでに完了したクイズの正答率、連続正解数、科目バランスを表示します。</p>
+        {xpError && <p className="feedback">経験値データを取得できませんでした。時間をおいて再度お試しください。</p>}
         <div className="stat-grid">
           <div className="stat-card">
             <span>総合正答率</span>
@@ -69,11 +75,11 @@ function Analytics() {
           </div>
           <div className="stat-card">
             <span>現在のレベル</span>
-            <strong>Lv.{xpSummary?.level ?? 1}</strong>
+            <strong>{xpSummary ? `Lv.${xpSummary.level}` : '-'}</strong>
           </div>
           <div className="stat-card">
             <span>学習した日数</span>
-            <strong>{xpSummary?.studyDays ?? 0}日</strong>
+            <strong>{xpSummary ? `${xpSummary.studyDays}日` : '-'}</strong>
           </div>
           <div className="stat-card">
             <span>直近30日の学習日数</span>

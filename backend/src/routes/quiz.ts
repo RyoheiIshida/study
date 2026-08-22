@@ -1,9 +1,10 @@
 import { Router } from 'express';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const quizzes = await prisma.quiz.findMany({
     include: {
       questions: {
@@ -13,9 +14,9 @@ router.get('/', async (req, res) => {
     orderBy: { createdAt: 'desc' },
   });
   res.json(quizzes);
-});
+}));
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', asyncHandler(async (req, res) => {
   const quiz = await prisma.quiz.findUnique({
     where: { id: req.params.id },
     include: {
@@ -31,9 +32,9 @@ router.get('/:id', async (req, res) => {
   }
 
   res.json(quiz);
-});
+}));
 
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   const quiz = req.body as {
     id?: string;
     title?: string;
@@ -81,6 +82,6 @@ router.post('/', async (req, res) => {
   });
 
   res.status(201).json(created);
-});
+}));
 
 export default router;

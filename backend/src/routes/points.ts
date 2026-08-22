@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 import { computeAttemptPoints } from '../lib/points.js';
 
 const router = Router();
 router.use(requireAuth);
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const attempts = await prisma.quizAttempt.findMany({
     where: { username: req.user!.username },
   });
@@ -23,6 +24,6 @@ router.get('/', async (req, res) => {
     totalCorrect,
     totalAttempts: attempts.length,
   });
-});
+}));
 
 export default router;

@@ -1,19 +1,20 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 
 const router = Router();
 router.use(requireAuth);
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const records = await prisma.progressRecord.findMany({
     where: { username: req.user!.username },
     orderBy: { lastPlayed: 'desc' },
   });
   res.json(records);
-});
+}));
 
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   const record = req.body as {
     quizId?: string;
     completed?: number;
@@ -62,6 +63,6 @@ router.post('/', async (req, res) => {
   ]);
 
   res.status(201).json(saved);
-});
+}));
 
 export default router;

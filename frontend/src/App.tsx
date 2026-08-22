@@ -28,12 +28,20 @@ function App() {
       return;
     }
     let cancelled = false;
-    fetchXpSummary().then((summary) => {
-      if (!cancelled) setXpSummary(summary);
-    });
-    fetchPointsSummary().then((summary) => {
-      if (!cancelled) setPointsSummary(summary);
-    });
+    fetchXpSummary()
+      .then((summary) => {
+        if (!cancelled) setXpSummary(summary);
+      })
+      .catch(() => {
+        if (!cancelled) setXpSummary(null);
+      });
+    fetchPointsSummary()
+      .then((summary) => {
+        if (!cancelled) setPointsSummary(summary);
+      })
+      .catch(() => {
+        if (!cancelled) setPointsSummary(null);
+      });
     return () => {
       cancelled = true;
     };

@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 import { computeTrophies } from '../lib/trophies.js';
 
 const router = Router();
 router.use(requireAuth);
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const attempts = await prisma.quizAttempt.findMany({
     where: { username: req.user!.username },
     orderBy: { playedAt: 'asc' },
@@ -25,6 +26,6 @@ router.get('/', async (req, res) => {
   );
 
   res.json({ trophies, count: trophies.length });
-});
+}));
 
 export default router;

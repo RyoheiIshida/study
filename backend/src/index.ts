@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import authRouter from './routes/auth.js';
 import quizRouter from './routes/quiz.js';
@@ -13,8 +13,20 @@ const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()).filter(Boolean);
 
+// Vercel issues a fresh URL for every deployment (production, preview, and
+// git-branch aliases), e.g. https://study-app-frontend-<hash>-<team>.vercel.app.
+// A fixed allowlist can never keep up with those, so any origin belonging to
+// this project's Vercel app is allowed in addition to the explicit list.
+const VERCEL_FRONTEND_ORIGIN = /^https:\/\/study-app-frontend[a-z0-9.-]*\.vercel\.app$/;
+
 app.use(cors({
-  origin: allowedOrigins && allowedOrigins.length > 0 ? allowedOrigins : true,
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins?.includes(origin)) return callback(null, true);
+    if (VERCEL_FRONTEND_ORIGIN.test(origin)) return callback(null, true);
+    if (!allowedOrigins || allowedOrigins.length === 0) return callback(null, true);
+    callback(new Error(`Origin ${origin} is not allowed by CORS.`));
+  },
 }));
 app.use(express.json());
 
@@ -37,6 +49,14 @@ app.get('/health', async (req, res) => {
   } catch {
     res.status(503).json({ status: 'error' });
   }
+});
+
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+  console.error(err);
+  res.status(500).json({ message: 'Internal server error.' });
 });
 
 app.listen(port, () => {

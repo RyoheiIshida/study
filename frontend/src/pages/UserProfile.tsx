@@ -18,21 +18,27 @@ function UserProfile() {
   const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
   const [pointsSummary, setPointsSummary] = useState<PointsSummary | null>(null);
   const [trophySummary, setTrophySummary] = useState<TrophySummary | null>(null);
+  const [summaryError, setSummaryError] = useState(false);
 
   useEffect(() => {
     async function load() {
-      const [quizData, progressData, xpData, pointsData, trophyData] = await Promise.all([
-        fetchQuizzes(),
-        fetchProgress(),
-        fetchXpSummary(),
-        fetchPointsSummary(),
-        fetchTrophySummary(),
-      ]);
+      const [quizData, progressData] = await Promise.all([fetchQuizzes(), fetchProgress()]);
       setQuizzes(quizData);
       setRecords(progressData);
-      setXpSummary(xpData);
-      setPointsSummary(pointsData);
-      setTrophySummary(trophyData);
+
+      try {
+        const [xpData, pointsData, trophyData] = await Promise.all([
+          fetchXpSummary(),
+          fetchPointsSummary(),
+          fetchTrophySummary(),
+        ]);
+        setXpSummary(xpData);
+        setPointsSummary(pointsData);
+        setTrophySummary(trophyData);
+        setSummaryError(false);
+      } catch {
+        setSummaryError(true);
+      }
     }
 
     load();
@@ -55,6 +61,12 @@ function UserProfile() {
         </div>
         <button className="button secondary" type="button" onClick={logout}>ログアウト</button>
       </div>
+
+      {summaryError && (
+        <div className="panel">
+          <p className="feedback">レベル・ポイント・トロフィーを取得できませんでした。時間をおいて再度お試しください。</p>
+        </div>
+      )}
 
       <div className="panel">
         <LevelBadge summary={xpSummary} variant="full" />
