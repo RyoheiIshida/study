@@ -158,6 +158,12 @@ function QuestionChallenge() {
     ]);
   }
 
+  function quitChallenge() {
+    if (window.confirm('クイズを中止しますか？途中経過は保存されません。')) {
+      navigate('/');
+    }
+  }
+
   function advanceAfterAnswer() {
     if (!quiz || !awaitingNext) return;
     const isLastQuestion = state.currentQuestionIndex + 1 >= quiz.questions.length;
@@ -360,6 +366,11 @@ function QuestionChallenge() {
                   ))}
                 </div>
               )}
+            </div>
+            <div className="challenge-quit">
+              <button type="button" className="button secondary" onClick={quitChallenge}>
+                クイズを中止する
+              </button>
             </div>
           </div>
         ) : null}

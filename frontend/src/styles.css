@@ -359,6 +359,13 @@ body.solving-mode .challenge-panel {
   padding-top: 16px;
 }
 
+.challenge-quit {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding-top: 14px;
+}
+
 .answer-result-overlay {
   position: fixed;
   z-index: 20;
