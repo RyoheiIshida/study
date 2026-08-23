@@ -49,6 +49,7 @@ function QuestionChallenge() {
   const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false);
 
   const isTextInput = quiz?.subject === 'Japanese';
+  const isKanjiWriting = Boolean(quiz?.id.startsWith('kanji-writing'));
 
   useEffect(() => {
     if (!quizId) return;
@@ -327,7 +328,7 @@ function QuestionChallenge() {
                   className="answer-text-input"
                   value={textAnswer}
                   onChange={(event) => setTextAnswer(event.target.value)}
-                  placeholder="ひらがなで入力"
+                  placeholder={isKanjiWriting ? '漢字で入力' : 'ひらがなで入力'}
                   autoFocus
                 />
                 <button type="submit" className="button">回答する</button>
