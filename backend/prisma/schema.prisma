@@ -12,13 +12,67 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  PARENT
+  CHILD
+}
+
 model User {
   id           Int              @id @default(autoincrement())
   username     String           @unique
   passwordHash String
+  role         Role             @default(CHILD)
   createdAt    DateTime         @default(now())
   progress     ProgressRecord[]
   quizAttempts QuizAttempt[]
+
+  parentId Int?
+  parent   User?  @relation("ParentChild", fields: [parentId], references: [id])
+  children User[] @relation("ParentChild")
+
+  sentInvites      FamilyInvite[]
+  purchaseRequests PurchaseRequest[] @relation("ChildRequests")
+  handledRequests  PurchaseRequest[] @relation("ParentRequests")
+}
+
+model FamilyInvite {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique
+  parentId  Int
+  parent    User      @relation(fields: [parentId], references: [id])
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  usedAt    DateTime?
+}
+
+enum PurchaseRequestStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  HANDED_OVER
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseRequest {
+  id           Int                   @id @default(autoincrement())
+  childId      Int
+  child        User                  @relation("ChildRequests", fields: [childId], references: [id])
+  parentId     Int
+  parent       User                  @relation("ParentRequests", fields: [parentId], references: [id])
+  pointsCost   Int
+  rate         Float
+  cashAmount   Int
+  memo         String?
+  status       PurchaseRequestStatus @default(REQUESTED)
+  rejectReason String?
+  requestedAt  DateTime              @default(now())
+  respondedAt  DateTime?
+  handedOverAt DateTime?
+  receivedAt   DateTime?
+
+  @@index([childId, status])
+  @@index([parentId, status])
 }
 
 model Quiz {

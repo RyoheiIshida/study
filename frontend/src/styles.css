@@ -840,3 +840,78 @@ select, input {
 
   .level-chip-bar { width: 46px; }
 }
+
+.tag.success { background: #e4f1ed; color: var(--accent-dark); }
+.tag.danger { background: #f7e3e3; color: var(--rose); }
+
+.role-select {
+  display: flex;
+  gap: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 0;
+}
+
+.role-select legend {
+  font-weight: 800;
+  padding: 0 4px;
+}
+
+.role-option {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.invite-code-box {
+  margin-top: 14px;
+  display: grid;
+  gap: 4px;
+}
+
+.invite-code {
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--accent-dark);
+}
+
+.family-member-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.family-member-list li {
+  background: #fffaf0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+
+.request-list {
+  display: grid;
+  gap: 14px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.request-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.request-card .card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

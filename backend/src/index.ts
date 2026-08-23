@@ -7,6 +7,8 @@ import questsRouter from './routes/quests.js';
 import xpRouter from './routes/xp.js';
 import trophiesRouter from './routes/trophies.js';
 import pointsRouter from './routes/points.js';
+import familyRouter from './routes/family.js';
+import purchaseRequestsRouter from './routes/purchaseRequests.js';
 import { prisma } from './db.js';
 
 const app = express();
@@ -37,6 +39,8 @@ app.use('/api/quests', questsRouter);
 app.use('/api/xp', xpRouter);
 app.use('/api/trophies', trophiesRouter);
 app.use('/api/points', pointsRouter);
+app.use('/api/family', familyRouter);
+app.use('/api/purchase-requests', purchaseRequestsRouter);
 
 app.get('/', (req, res) => {
   res.send({ message: 'Study Game API is running' });

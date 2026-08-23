@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
-import { computeAttemptPoints } from '../lib/points.js';
+import { computeAttemptPoints, computeTotalPoints } from '../lib/points.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -12,10 +12,9 @@ router.get('/', asyncHandler(async (req, res) => {
     where: { username: req.user!.username },
   });
 
-  let totalPoints = 0;
+  const totalPoints = await computeTotalPoints(req.user!.username);
   let totalCorrect = 0;
   for (const attempt of attempts) {
-    totalPoints += computeAttemptPoints(attempt);
     totalCorrect += attempt.correct;
   }
 

@@ -18,13 +18,17 @@ export interface GraphOption {
   intercept: number;
 }
 
+export type Role = 'PARENT' | 'CHILD';
+
 export interface AuthUser {
   username: string;
+  role: Role;
 }
 
 export interface AuthCredentials {
   username: string;
   password: string;
+  role?: Role;
 }
 
 export interface AuthResponse {
@@ -110,6 +114,40 @@ export interface GameState {
   score: number;
   finished: boolean;
   message: string;
+}
+
+export interface FamilyMember {
+  username: string;
+}
+
+export type FamilyInfo =
+  | { role: 'PARENT'; children: FamilyMember[] }
+  | { role: 'CHILD'; parent: FamilyMember | null };
+
+export interface ExchangeRateInfo {
+  rate: number;
+  recentAccuracy: number;
+  availablePoints: number;
+}
+
+export type PurchaseRequestStatus = 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'HANDED_OVER' | 'RECEIVED' | 'CANCELLED';
+
+export interface PurchaseRequest {
+  id: number;
+  childId: number;
+  parentId: number;
+  pointsCost: number;
+  rate: number;
+  cashAmount: number;
+  memo: string | null;
+  status: PurchaseRequestStatus;
+  rejectReason: string | null;
+  requestedAt: string;
+  respondedAt: string | null;
+  handedOverAt: string | null;
+  receivedAt: string | null;
+  child: FamilyMember;
+  parent: FamilyMember;
 }
 
 export interface AnswerLogEntry {

@@ -8,6 +8,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Analytics from './pages/Analytics';
 import UserProfile from './pages/UserProfile';
+import FamilySettings from './pages/FamilySettings';
+import PurchaseRequests from './pages/PurchaseRequests';
 import { RequireAuth, useAuth } from './context/AuthContext';
 import { fetchXpSummary } from './api/xp';
 import { fetchPointsSummary } from './api/points';
@@ -61,6 +63,8 @@ function App() {
               <NavLink to="/progress">進捗</NavLink>
               <NavLink to="/analytics">分析</NavLink>
               <NavLink to="/profile">プロフィール</NavLink>
+              <NavLink to="/family">家族</NavLink>
+              <NavLink to="/purchase-requests">おこづかい</NavLink>
             </>
           )}
         </nav>
@@ -92,6 +96,8 @@ function App() {
           <Route path="/progress" element={<RequireAuth><Progress /></RequireAuth>} />
           <Route path="/analytics" element={<RequireAuth><Analytics /></RequireAuth>} />
           <Route path="/profile" element={<RequireAuth><UserProfile /></RequireAuth>} />
+          <Route path="/family" element={<RequireAuth><FamilySettings /></RequireAuth>} />
+          <Route path="/purchase-requests" element={<RequireAuth><PurchaseRequests /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
