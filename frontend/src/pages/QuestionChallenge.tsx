@@ -84,6 +84,12 @@ function QuestionChallenge() {
 
   const currentQuestion = useMemo(() => quiz?.questions[state.currentQuestionIndex], [quiz, state.currentQuestionIndex]);
   const isGraphQuestion = quiz?.subject === 'Math' && Boolean(currentQuestion?.graphOptions?.length);
+  const isSolving = Boolean(currentQuestion && !state.finished);
+
+  useEffect(() => {
+    document.body.classList.toggle('solving-mode', isSolving);
+    return () => document.body.classList.remove('solving-mode');
+  }, [isSolving]);
 
   const answerOptions = useMemo(() => {
     if (!currentQuestion || isTextInput) return [];
@@ -219,7 +225,7 @@ function QuestionChallenge() {
   }
 
   return (
-    <section>
+    <section className="challenge-page">
       <div className="panel challenge-panel">
         {awaitingNext && (
           <button type="button" className="answer-result-overlay" onClick={advanceAfterAnswer} aria-label="次の問題へ進む">
@@ -229,17 +235,19 @@ function QuestionChallenge() {
             <span className="answer-result-hint">もう一度クリックまたはタップすると次の問題へ</span>
           </button>
         )}
-        <div className="challenge-header">
-          <div>
-            <p className="eyebrow">チャレンジ</p>
-            <h2>{quiz.title}</h2>
-            <p>{quiz.description}</p>
+        {!isSolving && (
+          <div className="challenge-header">
+            <div>
+              <p className="eyebrow">チャレンジ</p>
+              <h2>{quiz.title}</h2>
+              <p>{quiz.description}</p>
+            </div>
+            <div className="challenge-aside">
+              <ScoreCard score={state.score} streak={state.streak} correctCount={state.correctCount} total={quiz.questions.length} />
+              {!state.finished && <TimerDisplay secondsLeft={secondsLeft} totalSeconds={QUESTION_SECONDS} />}
+            </div>
           </div>
-          <div className="challenge-aside">
-            <ScoreCard score={state.score} streak={state.streak} correctCount={state.correctCount} total={quiz.questions.length} />
-            {!state.finished && <TimerDisplay secondsLeft={secondsLeft} totalSeconds={QUESTION_SECONDS} />}
-          </div>
-        </div>
+        )}
 
         {state.finished ? (
           <div className="result-card">
@@ -310,56 +318,49 @@ function QuestionChallenge() {
             </div>
           </div>
         ) : currentQuestion ? (
-          <div className="challenge-form">
+          <div className="challenge-form solving">
             <div className="question-card">
               <p className="eyebrow">問題 {state.currentQuestionIndex + 1} / {quiz.questions.length}</p>
               <h3>{currentQuestion.text}</h3>
             </div>
-            {isTextInput ? (
-              <form
-                className="answer-text-form"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  submitAnswer(textAnswer);
-                }}
-              >
-                <input
-                  type="text"
-                  className="answer-text-input"
-                  value={textAnswer}
-                  onChange={(event) => setTextAnswer(event.target.value)}
-                  placeholder={isKanjiWriting ? '漢字で入力' : 'ひらがなで入力'}
-                  autoFocus
-                />
-                <button type="submit" className="button">回答する</button>
-              </form>
-            ) : isGraphQuestion && currentQuestion?.graphOptions ? (
-              <div className="graph-answer-buttons" role="group" aria-label="グラフの選択肢">
-                {currentQuestion.graphOptions.map((option) => (
-                  <button key={option.id} type="button" className="graph-option-button" onClick={() => submitAnswer(option.id)}>
-                    <span className="graph-option-label">{option.id}</span>
-                    <LinearGraph option={option} />
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="answer-buttons">
-                {answerOptions.map((option) => (
-                  <button key={option} type="button" className="option-button" onClick={() => submitAnswer(option)}>
-                    {option}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="challenge-actions">
-              <button type="button" className="button secondary" onClick={() => navigate('/')}>クイズ一覧に戻る</button>
+            <div className="answer-scroll-area">
+              {isTextInput ? (
+                <form
+                  className="answer-text-form"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    submitAnswer(textAnswer);
+                  }}
+                >
+                  <input
+                    type="text"
+                    className="answer-text-input"
+                    value={textAnswer}
+                    onChange={(event) => setTextAnswer(event.target.value)}
+                    placeholder={isKanjiWriting ? '漢字で入力' : 'ひらがなで入力'}
+                    autoFocus
+                  />
+                  <button type="submit" className="button">回答する</button>
+                </form>
+              ) : isGraphQuestion && currentQuestion?.graphOptions ? (
+                <div className="graph-answer-buttons" role="group" aria-label="グラフの選択肢">
+                  {currentQuestion.graphOptions.map((option) => (
+                    <button key={option.id} type="button" className="graph-option-button" onClick={() => submitAnswer(option.id)}>
+                      <span className="graph-option-label">{option.id}</span>
+                      <LinearGraph option={option} />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="answer-buttons">
+                  {answerOptions.map((option) => (
+                    <button key={option} type="button" className="option-button" onClick={() => submitAnswer(option)}>
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            {feedback && (
-              <div className="feedback-panel">
-                <p className="feedback">{feedback}</p>
-                {lastExplanation && <p>{lastExplanation}</p>}
-              </div>
-            )}
           </div>
         ) : null}
       </div>

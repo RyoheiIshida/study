@@ -302,6 +302,63 @@ select, input {
   gap: 16px;
 }
 
+body.solving-mode {
+  overflow: hidden;
+}
+
+body.solving-mode .top-bar {
+  display: none;
+}
+
+body.solving-mode .app-shell {
+  height: 100vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body.solving-mode .app-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+body.solving-mode .challenge-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+body.solving-mode .challenge-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+}
+
+.challenge-form.solving {
+  margin-top: 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.challenge-form.solving .question-card {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.answer-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 16px;
+}
+
 .answer-result-overlay {
   position: fixed;
   z-index: 20;
