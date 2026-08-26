@@ -63,7 +63,6 @@ function App() {
               <NavLink to="/progress">進捗</NavLink>
               <NavLink to="/analytics">分析</NavLink>
               <NavLink to="/profile">プロフィール</NavLink>
-              <NavLink to="/family">家族</NavLink>
               <NavLink to="/purchase-requests">おこづかい</NavLink>
             </>
           )}

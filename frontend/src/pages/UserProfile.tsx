@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { fetchXpSummary } from '../api/xp';
 import { fetchPointsSummary } from '../api/points';
@@ -60,6 +61,12 @@ function UserProfile() {
           <p>最終練習日: {lastPlayed}</p>
         </div>
         <button className="button secondary" type="button" onClick={logout}>ログアウト</button>
+      </div>
+
+      <div className="panel">
+        <p className="eyebrow">家族</p>
+        <p>家族の連携設定や招待コードの管理はこちらから。</p>
+        <Link to="/family" className="button secondary">家族設定を開く</Link>
       </div>
 
       {summaryError && (
