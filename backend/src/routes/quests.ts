@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
-import { dailyQuestDefinitions, QuestStats } from '../data/quests.js';
+import { generateDailyQuests, QuestStats } from '../data/quests.js';
+import { computeAttemptXp, getLevelProgress } from '../lib/leveling.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -17,23 +18,33 @@ function getJstDayRangeUtc(now = new Date()) {
   return { startUtc, endUtc };
 }
 
+function jstDateKey(date: Date) {
+  const jst = new Date(date.getTime() + JST_OFFSET_MS);
+  return jst.toISOString().slice(0, 10);
+}
+
 router.get('/today', asyncHandler(async (req, res) => {
   const { startUtc, endUtc } = getJstDayRangeUtc();
+  const username = req.user!.username;
 
-  const attempts = await prisma.quizAttempt.findMany({
-    where: {
-      username: req.user!.username,
-      playedAt: { gte: startUtc, lt: endUtc },
-    },
-  });
+  const [todayAttempts, allAttempts] = await Promise.all([
+    prisma.quizAttempt.findMany({
+      where: { username, playedAt: { gte: startUtc, lt: endUtc } },
+    }),
+    prisma.quizAttempt.findMany({ where: { username } }),
+  ]);
 
   const stats: QuestStats = {
-    attemptCount: attempts.length,
-    totalCorrect: attempts.reduce((sum, attempt) => sum + attempt.correct, 0),
-    bestStreak: attempts.reduce((max, attempt) => Math.max(max, attempt.streak), 0),
+    attemptCount: todayAttempts.length,
+    totalCorrect: todayAttempts.reduce((sum, attempt) => sum + attempt.correct, 0),
+    bestStreak: todayAttempts.reduce((max, attempt) => Math.max(max, attempt.streak), 0),
   };
 
-  const quests = dailyQuestDefinitions.map((def) => ({
+  const totalXp = allAttempts.reduce((sum, attempt) => sum + computeAttemptXp(attempt), 0);
+  const { level } = getLevelProgress(totalXp);
+  const seed = `${username}:${jstDateKey(new Date())}`;
+
+  const quests = generateDailyQuests(level, seed).map((def) => ({
     id: def.id,
     title: def.title,
     description: def.description,
