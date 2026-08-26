@@ -39,3 +39,19 @@ export function findGroupByQuizId(quizId: string): QuizGroup | undefined {
 export function findGroupById(groupId: string): QuizGroup | undefined {
   return quizGroups.find((group) => group.id === groupId);
 }
+
+const DEFAULT_DIFFICULTY_LABEL = '通常';
+
+export function getDifficultyLabel(quizId: string): string {
+  const group = findGroupByQuizId(quizId);
+  const member = group?.members.find((item) => item.quizId === quizId);
+  return member?.difficultyLabel ?? DEFAULT_DIFFICULTY_LABEL;
+}
+
+export function getDifficultyOrder(difficultyLabel: string): number {
+  for (const group of quizGroups) {
+    const member = group.members.find((item) => item.difficultyLabel === difficultyLabel);
+    if (member) return member.order;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { fetchXpSummary } from '../api/xp';
-import { ProgressRecord, Quiz, XpSummary } from '../types';
+import { fetchAnswerSpeedTrend } from '../api/answerSpeed';
+import { AnswerSpeedTrendPoint, ProgressRecord, Quiz, XpSummary } from '../types';
 import {
   buildActivityCalendar,
   buildSubjectSummary,
@@ -11,6 +12,7 @@ import {
   getTotals,
 } from '../utils/chartHelpers';
 import { subjectLabel } from '../utils/labels';
+import SpeedTrendChart from '../components/SpeedTrendChart';
 
 function Analytics() {
   const [records, setRecords] = useState<ProgressRecord[]>([]);
@@ -18,6 +20,8 @@ function Analytics() {
   const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [xpError, setXpError] = useState(false);
+  const [speedTrend, setSpeedTrend] = useState<AnswerSpeedTrendPoint[]>([]);
+  const [speedError, setSpeedError] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -32,6 +36,14 @@ function Analytics() {
       } catch {
         setXpSummary(null);
         setXpError(true);
+      }
+
+      try {
+        setSpeedTrend(await fetchAnswerSpeedTrend());
+        setSpeedError(false);
+      } catch {
+        setSpeedTrend([]);
+        setSpeedError(true);
       }
 
       setLoading(false);
@@ -202,6 +214,24 @@ function Analytics() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      <div className="panel">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">解答スピード</p>
+            <h2>難易度ごとの解答時間の推移</h2>
+            <p>その日ごとの平均解答時間（秒）を難易度別に表示します。時間切れになった問題は含みません。</p>
+          </div>
+        </div>
+        {speedError && <p className="feedback">解答スピードのデータを取得できませんでした。時間をおいて再度お試しください。</p>}
+        {loading ? (
+          <p>解答スピードを読み込み中...</p>
+        ) : speedTrend.length === 0 ? (
+          <p>解答スピードのデータはまだありません。クイズに回答すると記録が表示されます。</p>
+        ) : (
+          <SpeedTrendChart points={speedTrend} />
         )}
       </div>
 

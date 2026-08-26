@@ -158,4 +158,22 @@ export interface AnswerLogEntry {
   isCorrect: boolean;
   timedOut: boolean;
   explanation?: string;
+  elapsedMs: number;
+  difficulty: string;
+}
+
+export interface AnswerSpeedRecord {
+  quizId: string;
+  questionId: string;
+  difficulty: string;
+  isCorrect: boolean;
+  elapsedMs: number;
+  answeredAt: string;
+}
+
+export interface AnswerSpeedTrendPoint {
+  date: string;
+  difficulty: string;
+  averageSeconds: number;
+  count: number;
 }

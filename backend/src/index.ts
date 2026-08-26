@@ -9,6 +9,7 @@ import trophiesRouter from './routes/trophies.js';
 import pointsRouter from './routes/points.js';
 import familyRouter from './routes/family.js';
 import purchaseRequestsRouter from './routes/purchaseRequests.js';
+import answerSpeedRouter from './routes/answerSpeed.js';
 import { prisma } from './db.js';
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/trophies', trophiesRouter);
 app.use('/api/points', pointsRouter);
 app.use('/api/family', familyRouter);
 app.use('/api/purchase-requests', purchaseRequestsRouter);
+app.use('/api/answer-speed', answerSpeedRouter);
 
 app.get('/', (req, res) => {
   res.send({ message: 'Study Game API is running' });

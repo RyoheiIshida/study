@@ -833,6 +833,11 @@ body.solving-mode .challenge-panel {
   color: var(--muted);
 }
 
+.answer-review-time {
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .trophy-grid {
   display: grid;
   gap: 14px;
@@ -978,4 +983,112 @@ body.solving-mode .challenge-panel {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.speed-chart {
+  position: relative;
+}
+
+.speed-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.speed-chart-grid {
+  stroke: #e5ddca;
+  stroke-width: 1;
+}
+
+.speed-chart-axis-label {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.speed-chart-crosshair {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.speed-chart-line {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.speed-chart-dot {
+  stroke: #fffdf7;
+  stroke-width: 2;
+}
+
+.speed-chart-end-label {
+  fill: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.speed-chart-tooltip {
+  position: absolute;
+  top: 8px;
+  transform: translateX(-50%);
+  background: #fffdf7;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  min-width: 160px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.speed-chart-tooltip strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.speed-chart-tooltip ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.speed-chart-tooltip li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.speed-chart-tooltip-key {
+  display: inline-block;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.speed-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.speed-chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 0.88rem;
+}
+
+.speed-chart-legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
 }

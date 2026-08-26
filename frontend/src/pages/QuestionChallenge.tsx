@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchQuizById, saveProgress } from '../api/quiz';
 import { fetchXpSummary } from '../api/xp';
 import { fetchPointsSummary } from '../api/points';
 import { fetchTrophySummary } from '../api/trophies';
-import { AnswerLogEntry, GameState, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
+import { saveAnswerSpeedRecords } from '../api/answerSpeed';
+import { AnswerLogEntry, AnswerSpeedRecord, GameState, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import ScoreCard from '../components/ScoreCard';
 import TimerDisplay from '../components/TimerDisplay';
 import LinearGraph from '../components/LinearGraph';
 import { normalizeReading } from '../utils/reading';
 import { pickSessionQuestions } from '../utils/shuffle';
+import { getDifficultyLabel } from '../utils/quizGroups';
 
 const QUESTION_SECONDS = 30;
 
@@ -47,6 +49,7 @@ function QuestionChallenge() {
   const [answerLog, setAnswerLog] = useState<AnswerLogEntry[]>([]);
   const [awaitingNext, setAwaitingNext] = useState(false);
   const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false);
+  const questionStartRef = useRef(Date.now());
 
   const isTextInput = quiz?.subject === 'Japanese';
   const isKanjiWriting = Boolean(quiz?.id.startsWith('kanji-writing'));
@@ -87,6 +90,12 @@ function QuestionChallenge() {
   const isSolving = Boolean(currentQuestion && !state.finished);
 
   useEffect(() => {
+    if (currentQuestion && !awaitingNext) {
+      questionStartRef.current = Date.now();
+    }
+  }, [currentQuestion, awaitingNext]);
+
+  useEffect(() => {
     document.body.classList.toggle('solving-mode', isSolving);
     return () => document.body.classList.remove('solving-mode');
   }, [isSolving]);
@@ -123,6 +132,7 @@ function QuestionChallenge() {
   function submitAnswer(option: string, timedOut = false) {
     if (!quiz || !currentQuestion || state.finished || awaitingNext) return;
     const correct = !timedOut && normalizeReading(getAnswerValue(option)) === normalizeReading(currentQuestion.answer);
+    const elapsedMs = timedOut ? QUESTION_SECONDS * 1000 : Date.now() - questionStartRef.current;
 
     setState((prev) => {
       const streak = correct ? prev.streak + 1 : 0;
@@ -154,6 +164,8 @@ function QuestionChallenge() {
         isCorrect: correct,
         timedOut,
         explanation: currentQuestion.explanation,
+        elapsedMs,
+        difficulty: getDifficultyLabel(quiz.id),
       },
     ]);
   }
@@ -221,10 +233,24 @@ function QuestionChallenge() {
       } catch {
         setSaveStatus('failed');
       }
+
+      const speedRecords: AnswerSpeedRecord[] = answerLog
+        .filter((entry) => !entry.timedOut)
+        .map((entry) => ({
+          quizId: record.quizId,
+          questionId: entry.questionId,
+          difficulty: entry.difficulty,
+          isCorrect: entry.isCorrect,
+          elapsedMs: entry.elapsedMs,
+          answeredAt: record.lastPlayed,
+        }));
+      saveAnswerSpeedRecords(speedRecords).catch(() => {
+        // Speed history is supplementary analytics data; a failed save should not block the result screen.
+      });
     }
 
     persistProgress();
-  }, [quiz, saveStatus, state.correctCount, state.finished, state.streak]);
+  }, [quiz, saveStatus, state.correctCount, state.finished, state.streak, answerLog]);
 
   if (!quiz) {
     return <p>クイズを読み込み中...</p>;
@@ -307,7 +333,10 @@ function QuestionChallenge() {
                 {answerLog.map((entry, index) => (
                   <li key={entry.questionId + index} className={entry.isCorrect ? 'answer-review-item correct' : 'answer-review-item incorrect'}>
                     <p className="answer-review-question">問題 {index + 1}: {entry.questionText}</p>
-                    <p>あなたの回答: {entry.userAnswer || '(未回答)'} {entry.isCorrect ? '◯' : '✕'}</p>
+                    <p>
+                      あなたの回答: {entry.userAnswer || '(未回答)'} {entry.isCorrect ? '◯' : '✕'}
+                      {!entry.timedOut && <span className="answer-review-time">（{(entry.elapsedMs / 1000).toFixed(1)}秒）</span>}
+                    </p>
                     {!entry.isCorrect && <p>正しい回答: {entry.correctAnswer}</p>}
                     {entry.explanation && <p className="answer-review-explanation">{entry.explanation}</p>}
                   </li>
