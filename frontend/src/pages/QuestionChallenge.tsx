@@ -50,6 +50,7 @@ function QuestionChallenge() {
   const [awaitingNext, setAwaitingNext] = useState(false);
   const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false);
   const questionStartRef = useRef(Date.now());
+  const answerScrollRef = useRef<HTMLDivElement | null>(null);
 
   const isTextInput = quiz?.subject === 'Japanese';
   const isKanjiWriting = Boolean(quiz?.id.startsWith('kanji-writing'));
@@ -92,6 +93,7 @@ function QuestionChallenge() {
   useEffect(() => {
     if (currentQuestion && !awaitingNext) {
       questionStartRef.current = Date.now();
+      answerScrollRef.current?.scrollTo(0, 0);
     }
   }, [currentQuestion, awaitingNext]);
 
@@ -358,7 +360,7 @@ function QuestionChallenge() {
               <p className="eyebrow">問題 {state.currentQuestionIndex + 1} / {quiz.questions.length}</p>
               <h3>{currentQuestion.text}</h3>
             </div>
-            <div className="answer-scroll-area">
+            <div className="answer-scroll-area" ref={answerScrollRef}>
               {isTextInput ? (
                 <form
                   className="answer-text-form"
