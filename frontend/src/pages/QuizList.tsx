@@ -6,7 +6,7 @@ import { subjectLabel, gradeLabel } from '../utils/labels';
 import { findGroupByQuizId } from '../utils/quizGroups';
 import DailyQuestPanel from '../components/DailyQuestPanel';
 
-const subjectOptions: Array<Subject | 'All'> = ['All', 'Arithmetic', 'Math', 'English', 'Japanese'];
+const subjectOptions: Subject[] = ['Math'];
 
 interface QuizListEntry {
   key: string;
@@ -57,11 +57,11 @@ function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
 
 function QuizList() {
   const { quizzes, isLoading, refreshQuizzes } = useQuizStore();
-  const [selectedSubject, setSelectedSubject] = useState<Subject | 'All'>('All');
+  const [selectedSubject, setSelectedSubject] = useState<Subject>('Math');
   const entries = useMemo(() => buildQuizListEntries(quizzes), [quizzes]);
 
   useEffect(() => {
-    refreshQuizzes(selectedSubject === 'All' ? undefined : selectedSubject);
+    refreshQuizzes(selectedSubject);
   }, [refreshQuizzes, selectedSubject]);
 
   return (
@@ -75,9 +75,9 @@ function QuizList() {
         <div className="filters">
           <label>
             科目
-            <select value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value as Subject | 'All')}>
+            <select value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value as Subject)}>
               {subjectOptions.map((subject) => (
-                <option key={subject} value={subject}>{subject === 'All' ? 'すべて' : subjectLabel(subject)}</option>
+                <option key={subject} value={subject}>{subjectLabel(subject)}</option>
               ))}
             </select>
           </label>
