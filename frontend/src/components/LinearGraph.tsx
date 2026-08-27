@@ -47,8 +47,7 @@ type SlopeMarker = {
   y1: number;
 };
 
-// 傾きが視覚的にわかりやすいよう、直線の中央付近に「横の変化・縦の変化」を示す
-// 三角形（直角の頂点＋直線上の 2 点）を置く。軸との交点はあえて避ける。
+// 直線の中央付近に 2 点のマーカーを置く。軸との交点はあえて避ける。
 function getSlopeMarker(option: GraphOption): SlopeMarker | null {
   const range = visibleXRange(option);
   if (!range) return null;
@@ -100,24 +99,6 @@ function LinearGraph({ option, size = 'small' }: LinearGraphProps) {
       <polyline points={getLinePoints(option)} className="graph-line" />
       {marker && (
         <g>
-          {marker.x1 !== marker.x0 && (
-            <line
-              x1={toSvg(marker.x0)}
-              y1={toSvg(-marker.y0)}
-              x2={toSvg(marker.x1)}
-              y2={toSvg(-marker.y0)}
-              className="graph-slope-leg"
-            />
-          )}
-          {marker.y1 !== marker.y0 && (
-            <line
-              x1={toSvg(marker.x1)}
-              y1={toSvg(-marker.y0)}
-              x2={toSvg(marker.x1)}
-              y2={toSvg(-marker.y1)}
-              className="graph-slope-leg"
-            />
-          )}
           <circle cx={toSvg(marker.x0)} cy={toSvg(-marker.y0)} r={3} className="graph-intersection-point" />
           <circle cx={toSvg(marker.x1)} cy={toSvg(-marker.y1)} r={3} className="graph-intersection-point" />
         </g>

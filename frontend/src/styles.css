@@ -470,7 +470,6 @@ body.solving-mode .challenge-panel {
 .graph-grid { stroke: #dce9e3; stroke-width: 0.7; }
 .graph-axis { stroke: #55736b; stroke-width: 1.4; }
 .graph-line { fill: none; stroke: #d15d45; stroke-width: 2.8; stroke-linecap: round; }
-.graph-slope-leg { stroke: #55736b; stroke-width: 1.2; stroke-dasharray: 3 2.5; opacity: 0.75; }
 .graph-label { fill: #55736b; font-size: 9px; font-weight: 700; }
 .graph-intersection-point { fill: var(--gold); stroke: #ffffff; stroke-width: 1.3; }
 
