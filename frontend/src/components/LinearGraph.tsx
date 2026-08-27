@@ -56,7 +56,7 @@ function slopeUnit(slope: number): number {
   return 1;
 }
 
-// 一方は y 軸との交点（x=0）、もう一方は中央付近の格子点（x・y が整数）にする。
+// 一方は y 軸との交点（x=0）、もう一方は y 軸に最も近い格子点（x・y が整数）にする。
 function getSlopeMarker(option: GraphOption): SlopeMarker | null {
   const range = visibleXRange(option);
   if (!range) return null;
@@ -67,15 +67,13 @@ function getSlopeMarker(option: GraphOption): SlopeMarker | null {
   const maxX1 = Math.floor(hi / unit) * unit;
   if (maxX1 < minX1) return null;
 
-  const center = (lo + hi) / 2;
-  const preferred = Math.round(center / unit) * unit;
   const candidates: number[] = [];
-  for (let delta = 0; delta <= maxX1 - minX1; delta += unit) {
-    candidates.push(preferred + delta, preferred - delta);
+  for (let x = minX1; x <= maxX1; x += unit) {
+    if (x !== 0) candidates.push(x);
   }
-  const inRange = candidates.filter((x) => x >= minX1 && x <= maxX1 && x !== 0);
-  const clear = inRange.find((x) => yAt(option, x) !== 0);
-  const x1 = clear ?? inRange[0];
+  candidates.sort((a, b) => Math.abs(a) - Math.abs(b));
+  const clear = candidates.find((x) => yAt(option, x) !== 0);
+  const x1 = clear ?? candidates[0];
   if (x1 === undefined) return null;
 
   return { x0: 0, x1, y0: option.intercept, y1: yAt(option, x1) };
