@@ -56,39 +56,29 @@ function slopeUnit(slope: number): number {
   return 1;
 }
 
-// 直線の中央付近に、x・y がともに整数（格子点）になる 2 点のマーカーを置く。
-// 軸との交点はあえて避ける。
+// 一方は y 軸との交点（x=0）、もう一方は中央付近の格子点（x・y が整数）にする。
 function getSlopeMarker(option: GraphOption): SlopeMarker | null {
   const range = visibleXRange(option);
   if (!range) return null;
   const [lo, hi] = range;
+  if (lo > 0.001 || hi < -0.001) return null;
   const unit = slopeUnit(option.slope);
-  const run = unit;
+  const minX1 = Math.ceil(lo / unit) * unit;
+  const maxX1 = Math.floor(hi / unit) * unit;
+  if (maxX1 < minX1) return null;
+
   const center = (lo + hi) / 2;
-  const minX0 = Math.ceil((lo + 0.001) / unit) * unit;
-  const maxX0 = Math.floor((hi - run - 0.001) / unit) * unit;
-
-  if (maxX0 >= minX0) {
-    const preferredRaw = Math.round((center - run / 2) / unit) * unit;
-    const preferred = Math.min(Math.max(preferredRaw, minX0), maxX0);
-    const candidates: number[] = [];
-    for (let delta = 0; delta <= maxX0 - minX0; delta += unit) {
-      candidates.push(preferred + delta, preferred - delta);
-    }
-    const inRange = candidates.filter((x) => x >= minX0 && x <= maxX0);
-    const clear = inRange.find((x0) => {
-      const x1 = x0 + run;
-      return x0 !== 0 && x1 !== 0 && yAt(option, x0) !== 0 && yAt(option, x1) !== 0;
-    });
-    const x0 = clear ?? inRange[0] ?? preferred;
-    return { x0, x1: x0 + run, y0: yAt(option, x0), y1: yAt(option, x0 + run) };
+  const preferred = Math.round(center / unit) * unit;
+  const candidates: number[] = [];
+  for (let delta = 0; delta <= maxX1 - minX1; delta += unit) {
+    candidates.push(preferred + delta, preferred - delta);
   }
+  const inRange = candidates.filter((x) => x >= minX1 && x <= maxX1 && x !== 0);
+  const clear = inRange.find((x) => yAt(option, x) !== 0);
+  const x1 = clear ?? inRange[0];
+  if (x1 === undefined) return null;
 
-  // 格子点が run 分の間隔で収まらない急な直線は、可視区間内の格子点を両端に置く
-  const loInt = Math.ceil(lo / unit) * unit;
-  const hiInt = Math.floor(hi / unit) * unit;
-  if (hiInt <= loInt) return null;
-  return { x0: loInt, x1: hiInt, y0: yAt(option, loInt), y1: yAt(option, hiInt) };
+  return { x0: 0, x1, y0: option.intercept, y1: yAt(option, x1) };
 }
 
 function LinearGraph({ option, size = 'small' }: LinearGraphProps) {
