@@ -908,6 +908,8 @@ body.solving-mode .challenge-panel {
   }
 
   .level-chip-bar { width: 46px; }
+
+  .question-card h3 { font-size: 1.25rem; }
 }
 
 .tag.success { background: #e4f1ed; color: var(--accent-dark); }
