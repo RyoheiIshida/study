@@ -62,10 +62,7 @@ function SpeedTrendChart({ points }: SpeedTrendChartProps) {
     let drawing = false;
     dates.forEach((date, index) => {
       const value = datum.valuesByDate.get(date);
-      if (!value) {
-        drawing = false;
-        return;
-      }
+      if (!value) return;
       const command = drawing ? 'L' : 'M';
       path += `${command}${xFor(index)},${yFor(value.averageSeconds)} `;
       drawing = true;
