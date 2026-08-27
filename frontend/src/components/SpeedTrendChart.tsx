@@ -17,11 +17,13 @@ interface SeriesDatum {
 const WIDTH = 760;
 const HEIGHT = 280;
 const PADDING_LEFT = 46;
-const PADDING_RIGHT = 20;
+const PADDING_RIGHT = 64;
 const PADDING_TOP = 20;
 const PADDING_BOTTOM = 34;
 const PLOT_WIDTH = WIDTH - PADDING_LEFT - PADDING_RIGHT;
 const PLOT_HEIGHT = HEIGHT - PADDING_TOP - PADDING_BOTTOM;
+const MARKER_SPREAD = 9;
+const END_LABEL_GAP = 13;
 
 function formatDateLabel(date: string) {
   return date.slice(5).replace('-', '/');
@@ -48,33 +50,41 @@ function SpeedTrendChart({ points }: SpeedTrendChartProps) {
   const maxSeconds = Math.max(1, ...points.map((point) => point.averageSeconds));
   const yMax = Math.max(5, Math.ceil(maxSeconds / 5) * 5);
 
-  function xFor(index: number) {
+  function xForDate(index: number) {
     if (dates.length <= 1) return PADDING_LEFT + PLOT_WIDTH / 2;
     return PADDING_LEFT + (index / (dates.length - 1)) * PLOT_WIDTH;
+  }
+
+  // Fan markers that share a date apart horizontally so every difficulty stays visible,
+  // even when all the practice for a day happened in a single session.
+  function xForMarker(dateIndex: number, seriesIndex: number) {
+    const spread = (seriesIndex - (series.length - 1) / 2) * MARKER_SPREAD;
+    const x = xForDate(dateIndex) + spread;
+    return Math.min(WIDTH - PADDING_RIGHT, Math.max(PADDING_LEFT, x));
   }
 
   function yFor(value: number) {
     return PADDING_TOP + PLOT_HEIGHT - (value / yMax) * PLOT_HEIGHT;
   }
 
-  function buildPath(datum: SeriesDatum) {
+  function buildPath(datum: SeriesDatum, seriesIndex: number) {
     let path = '';
     let drawing = false;
     dates.forEach((date, index) => {
       const value = datum.valuesByDate.get(date);
       if (!value) return;
       const command = drawing ? 'L' : 'M';
-      path += `${command}${xFor(index)},${yFor(value.averageSeconds)} `;
+      path += `${command}${xForMarker(index, seriesIndex)},${yFor(value.averageSeconds)} `;
       drawing = true;
     });
     return path.trim();
   }
 
-  function lastPoint(datum: SeriesDatum) {
+  function lastPoint(datum: SeriesDatum, seriesIndex: number) {
     for (let index = dates.length - 1; index >= 0; index -= 1) {
       const value = datum.valuesByDate.get(dates[index]);
       if (value) {
-        return { x: xFor(index), y: yFor(value.averageSeconds), averageSeconds: value.averageSeconds };
+        return { x: xForMarker(index, seriesIndex), y: yFor(value.averageSeconds), averageSeconds: value.averageSeconds };
       }
     }
     return null;
@@ -83,6 +93,26 @@ function SpeedTrendChart({ points }: SpeedTrendChartProps) {
   const yTicks = [0, yMax / 2, yMax];
   const xLabelStep = Math.max(1, Math.ceil(dates.length / 8));
   const hoverDate = hoverIndex !== null ? dates[hoverIndex] : null;
+
+  // Place the trailing "X.X秒" labels and nudge them apart when series land close together.
+  const endLabels = useMemo(() => {
+    const raw = series
+      .map((datum, seriesIndex) => {
+        const point = lastPoint(datum, seriesIndex);
+        if (!point) return null;
+        return { label: datum.label, color: datum.color, x: point.x, y: point.y, averageSeconds: point.averageSeconds };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => a.y - b.y);
+
+    for (let index = 1; index < raw.length; index += 1) {
+      if (raw[index].y - raw[index - 1].y < END_LABEL_GAP) {
+        raw[index].y = raw[index - 1].y + END_LABEL_GAP;
+      }
+    }
+    return raw;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [series, dates, yMax]);
 
   const summary = series
     .map((datum) => {
@@ -120,7 +150,7 @@ function SpeedTrendChart({ points }: SpeedTrendChartProps) {
           index % xLabelStep === 0 ? (
             <text
               key={date}
-              x={xFor(index)}
+              x={xForDate(index)}
               y={HEIGHT - PADDING_BOTTOM + 20}
               className="speed-chart-axis-label"
               textAnchor="middle"
@@ -132,26 +162,30 @@ function SpeedTrendChart({ points }: SpeedTrendChartProps) {
 
         {hoverIndex !== null && (
           <line
-            x1={xFor(hoverIndex)}
+            x1={xForDate(hoverIndex)}
             y1={PADDING_TOP}
-            x2={xFor(hoverIndex)}
+            x2={xForDate(hoverIndex)}
             y2={HEIGHT - PADDING_BOTTOM}
             className="speed-chart-crosshair"
           />
         )}
 
-        {series.map((datum) => (
-          <path key={datum.label} d={buildPath(datum)} fill="none" stroke={datum.color} className="speed-chart-line" />
-        ))}
+        {series.map((datum, seriesIndex) => {
+          const path = buildPath(datum, seriesIndex);
+          if (!path) return null;
+          return (
+            <path key={datum.label} d={path} fill="none" stroke={datum.color} className="speed-chart-line" />
+          );
+        })}
 
-        {series.map((datum) =>
+        {series.map((datum, seriesIndex) =>
           dates.map((date, index) => {
             const value = datum.valuesByDate.get(date);
             if (!value) return null;
             return (
               <circle
                 key={`${datum.label}-${date}`}
-                cx={xFor(index)}
+                cx={xForMarker(index, seriesIndex)}
                 cy={yFor(value.averageSeconds)}
                 r={4}
                 fill={datum.color}
@@ -161,38 +195,38 @@ function SpeedTrendChart({ points }: SpeedTrendChartProps) {
           }),
         )}
 
-        {series.map((datum) => {
-          const point = lastPoint(datum);
-          if (!point) return null;
+        {endLabels.map((item) => (
+          <text
+            key={`${item.label}-end-label`}
+            x={Math.min(WIDTH - PADDING_RIGHT, item.x) + 8}
+            y={item.y + 4}
+            fill={item.color}
+            className="speed-chart-end-label"
+          >
+            {item.averageSeconds.toFixed(1)}秒
+          </text>
+        ))}
+
+        {dates.map((date, index) => {
+          const half = dates.length > 1 ? PLOT_WIDTH / (dates.length - 1) / 2 : PLOT_WIDTH / 2;
           return (
-            <text
-              key={`${datum.label}-end-label`}
-              x={point.x + 6}
-              y={point.y + 4}
-              className="speed-chart-end-label"
-            >
-              {point.averageSeconds.toFixed(1)}秒
-            </text>
+            <rect
+              key={date}
+              x={Math.max(PADDING_LEFT, xForDate(index) - half)}
+              y={PADDING_TOP}
+              width={Math.min(WIDTH - PADDING_RIGHT, xForDate(index) + half) - Math.max(PADDING_LEFT, xForDate(index) - half)}
+              height={PLOT_HEIGHT}
+              fill="transparent"
+              onMouseEnter={() => setHoverIndex(index)}
+            />
           );
         })}
-
-        {dates.map((date, index) => (
-          <rect
-            key={date}
-            x={PADDING_LEFT + (index / dates.length) * PLOT_WIDTH}
-            y={PADDING_TOP}
-            width={PLOT_WIDTH / dates.length}
-            height={PLOT_HEIGHT}
-            fill="transparent"
-            onMouseEnter={() => setHoverIndex(index)}
-          />
-        ))}
       </svg>
 
       {hoverDate && (
         <div
           className="speed-chart-tooltip"
-          style={{ left: `${(xFor(hoverIndex ?? 0) / WIDTH) * 100}%` }}
+          style={{ left: `${(xForDate(hoverIndex ?? 0) / WIDTH) * 100}%` }}
         >
           <strong>{hoverDate}</strong>
           <ul>
