@@ -24,6 +24,7 @@ const initialState: GameState = {
   currentQuestionIndex: 0,
   correctCount: 0,
   streak: 0,
+  bestStreak: 0,
   score: 0,
   finished: false,
   message: '準備ができたら始めましょう。',
@@ -144,6 +145,7 @@ function QuestionChallenge() {
         currentQuestionIndex: prev.currentQuestionIndex,
         correctCount: prev.correctCount + (correct ? 1 : 0),
         streak,
+        bestStreak: Math.max(prev.bestStreak, streak),
         score,
         finished: false,
         message,
@@ -215,7 +217,8 @@ function QuestionChallenge() {
       completed: quiz.questions.length,
       total: quiz.questions.length,
       correct: state.correctCount,
-      streak: state.streak,
+      // 途中で1問まちがえても記録が0に戻らないよう、そのプレイ中の最高連続正解数を残す。
+      streak: state.bestStreak,
       lastPlayed: new Date().toISOString(),
     };
 
@@ -252,7 +255,7 @@ function QuestionChallenge() {
     }
 
     persistProgress();
-  }, [quiz, saveStatus, state.correctCount, state.finished, state.streak, answerLog]);
+  }, [quiz, saveStatus, state.correctCount, state.finished, state.bestStreak, answerLog]);
 
   if (!quiz) {
     return <p>クイズを読み込み中...</p>;

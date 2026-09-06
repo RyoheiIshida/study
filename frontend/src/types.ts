@@ -111,6 +111,7 @@ export interface GameState {
   currentQuestionIndex: number;
   correctCount: number;
   streak: number;
+  bestStreak: number;
   score: number;
   finished: boolean;
   message: string;

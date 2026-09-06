@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuizStore } from '../hooks/useQuizStore';
 import { Quiz, Subject } from '../types';
 import { subjectLabel, gradeLabel } from '../utils/labels';
@@ -56,13 +56,9 @@ function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
 }
 
 function QuizList() {
-  const { quizzes, isLoading, refreshQuizzes } = useQuizStore();
   const [selectedSubject, setSelectedSubject] = useState<Subject>('Math');
+  const { quizzes, isLoading } = useQuizStore(selectedSubject);
   const entries = useMemo(() => buildQuizListEntries(quizzes), [quizzes]);
-
-  useEffect(() => {
-    refreshQuizzes(selectedSubject);
-  }, [refreshQuizzes, selectedSubject]);
 
   return (
     <section className="page-stack">
