@@ -1,7 +1,8 @@
 export interface QuestStats {
   attemptCount: number;
   totalCorrect: number;
-  bestStreak: number;
+  // 今日プレイした各クイズでの最高連続正解数。
+  attemptStreaks: number[];
 }
 
 export interface DailyQuestDefinition {
@@ -17,14 +18,20 @@ interface DifficultyRange {
   attempt: [number, number];
   correct: [number, number];
   streak: [number, number];
+  streakClears: [number, number];
 }
 
+// 1回のクイズで出題される問題数はクイズによって異なり、数学（一次関数のグラフ）は5問しかない。
+// 連続正解の目標値がこれを超えると数学だけを解いている日は達成できなくなるため、上限として扱う。
+const SHORTEST_QUIZ_LENGTH = 5;
+
 // レベルが上がるほど範囲の下限・上限を引き上げ、要求される目標値を難しくする。
+// 連続正解はクイズの長さで頭打ちになるので、レベルが上がるほど「達成する回数」を増やして難しくする。
 const DIFFICULTY_TIERS: DifficultyRange[] = [
-  { attempt: [1, 2], correct: [3, 5], streak: [2, 3] }, // Lv.1-3: はじめて
-  { attempt: [2, 3], correct: [6, 10], streak: [4, 6] }, // Lv.4-7: なれてきた
-  { attempt: [3, 4], correct: [12, 18], streak: [7, 10] }, // Lv.8-13: 上級者
-  { attempt: [4, 5], correct: [20, 30], streak: [11, 15] }, // Lv.14+: エキスパート
+  { attempt: [1, 2], correct: [3, 5], streak: [2, 3], streakClears: [1, 1] }, // Lv.1-3: はじめて
+  { attempt: [2, 3], correct: [6, 10], streak: [3, 4], streakClears: [1, 1] }, // Lv.4-7: なれてきた
+  { attempt: [3, 4], correct: [12, 18], streak: [4, 5], streakClears: [1, 2] }, // Lv.8-13: 上級者
+  { attempt: [4, 5], correct: [20, 30], streak: [5, 5], streakClears: [2, 3] }, // Lv.14+: エキスパート
 ];
 
 function tierForLevel(level: number): DifficultyRange {
@@ -61,7 +68,17 @@ export function generateDailyQuests(level: number, seed: string): DailyQuestDefi
 
   const attemptTarget = randomInRange(random, tier.attempt);
   const correctTarget = randomInRange(random, tier.correct);
-  const streakTarget = randomInRange(random, tier.streak);
+  const streakTarget = Math.min(randomInRange(random, tier.streak), SHORTEST_QUIZ_LENGTH);
+  const streakClearTarget = randomInRange(random, tier.streakClears);
+
+  const streakDescription =
+    streakClearTarget === 1
+      ? `1回のクイズで${streakTarget}問連続正解を目指しましょう。`
+      : `${streakTarget}問連続正解を${streakClearTarget}回のプレイで達成しましょう。`;
+
+  function countStreakClears(stats: QuestStats): number {
+    return stats.attemptStreaks.filter((streak) => streak >= streakTarget).length;
+  }
 
   return [
     {
@@ -91,10 +108,10 @@ export function generateDailyQuests(level: number, seed: string): DailyQuestDefi
     {
       id: 'daily-streak',
       title: '連続正解',
-      description: `1回のクイズで${streakTarget}問連続正解を目指しましょう。`,
-      target: streakTarget,
-      current: (stats) => Math.min(stats.bestStreak, streakTarget),
-      completed: (stats) => stats.bestStreak >= streakTarget,
+      description: streakDescription,
+      target: streakClearTarget,
+      current: (stats) => Math.min(countStreakClears(stats), streakClearTarget),
+      completed: (stats) => countStreakClears(stats) >= streakClearTarget,
     },
   ];
 }

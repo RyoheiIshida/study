@@ -37,7 +37,7 @@ router.get('/today', asyncHandler(async (req, res) => {
   const stats: QuestStats = {
     attemptCount: todayAttempts.length,
     totalCorrect: todayAttempts.reduce((sum, attempt) => sum + attempt.correct, 0),
-    bestStreak: todayAttempts.reduce((max, attempt) => Math.max(max, attempt.streak), 0),
+    attemptStreaks: todayAttempts.map((attempt) => attempt.streak),
   };
 
   const totalXp = allAttempts.reduce((sum, attempt) => sum + computeAttemptXp(attempt), 0);
