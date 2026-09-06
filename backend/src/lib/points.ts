@@ -16,7 +16,7 @@ export async function computeTotalPoints(username: string): Promise<number> {
   return attempts.reduce((sum, attempt) => sum + computeAttemptPoints(attempt), 0);
 }
 
-const LOCKED_STATUSES: PurchaseRequestStatus[] = [
+export const LOCKED_STATUSES: PurchaseRequestStatus[] = [
   PurchaseRequestStatus.REQUESTED,
   PurchaseRequestStatus.APPROVED,
   PurchaseRequestStatus.HANDED_OVER,

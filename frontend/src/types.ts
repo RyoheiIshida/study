@@ -124,10 +124,28 @@ export type FamilyInfo =
   | { role: 'PARENT'; children: FamilyMember[] }
   | { role: 'CHILD'; parent: FamilyMember | null };
 
+export interface ExchangeTier {
+  level: number;
+  monthlyLimit: number;
+}
+
+export interface ExchangeLimitInfo {
+  level: number;
+  unlockLevel: number;
+  unlocked: boolean;
+  month: string;
+  monthlyLimit: number;
+  monthlyUsed: number;
+  monthlyRemaining: number;
+  nextTier: ExchangeTier | null;
+  tiers: ExchangeTier[];
+}
+
 export interface ExchangeRateInfo {
   rate: number;
   recentAccuracy: number;
   availablePoints: number;
+  limit: ExchangeLimitInfo;
 }
 
 export type PurchaseRequestStatus = 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'HANDED_OVER' | 'RECEIVED' | 'CANCELLED';

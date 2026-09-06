@@ -100,6 +100,9 @@ function PurchaseRequests() {
     ? Math.round(Number(pointsCost) * rateInfo.rate)
     : null;
 
+  const limit = rateInfo?.limit ?? null;
+  const isOverMonthlyLimit = limit !== null && previewCash !== null && previewCash > limit.monthlyRemaining;
+
   return (
     <section className="page-stack">
       <div className="panel">
@@ -108,45 +111,77 @@ function PurchaseRequests() {
         {errorMessage && <p className="feedback">{errorMessage}</p>}
       </div>
 
-      {isChild && (
+      {isChild && rateInfo && limit && (
         <div className="panel">
-          {rateInfo && (
-            <div className="stat-grid">
-              <div className="stat-card">
-                <span>現在のレート</span>
-                <strong>1pt = {rateInfo.rate}円</strong>
-              </div>
-              <div className="stat-card">
-                <span>直近の正答率</span>
-                <strong>{Math.round(rateInfo.recentAccuracy * 100)}%</strong>
-              </div>
-              <div className="stat-card">
-                <span>交換可能ポイント</span>
-                <strong>{rateInfo.availablePoints}pt</strong>
-              </div>
+          <div className="stat-grid">
+            <div className="stat-card">
+              <span>現在のレート</span>
+              <strong>1pt = {rateInfo.rate}円</strong>
             </div>
+            <div className="stat-card">
+              <span>直近の正答率</span>
+              <strong>{Math.round(rateInfo.recentAccuracy * 100)}%</strong>
+            </div>
+            <div className="stat-card">
+              <span>交換可能ポイント</span>
+              <strong>{rateInfo.availablePoints}pt</strong>
+            </div>
+            {limit.unlocked && (
+              <div className="stat-card">
+                <span>今月の残り枠(Lv{limit.level})</span>
+                <strong>{limit.monthlyRemaining}円</strong>
+              </div>
+            )}
+          </div>
+
+          {!limit.unlocked ? (
+            <>
+              <p className="feedback">
+                おこづかい交換はレベル{limit.unlockLevel}から使えます。いまはレベル{limit.level}です。
+                クイズを解いてレベルを上げよう!
+              </p>
+              <h3>レベルごとの月間交換上限</h3>
+              <ul className="tier-list">
+                {limit.tiers.map((tier) => (
+                  <li key={tier.level}>
+                    <span className="tag muted">Lv{tier.level}</span>
+                    <span>月{tier.monthlyLimit}円まで</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <p className="hint">
+                今月({limit.month})の交換: {limit.monthlyUsed}円 / {limit.monthlyLimit}円
+                {limit.nextTier && `(レベル${limit.nextTier.level}になると月${limit.nextTier.monthlyLimit}円まで)`}
+              </p>
+              <label>
+                交換するポイント数
+                <input
+                  type="number"
+                  min={1}
+                  value={pointsCost}
+                  onChange={(e) => setPointsCost(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                メモ(任意)
+                <input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="例: 欲しいもの" />
+              </label>
+              {previewCash !== null && <p className="hint">受け取り予定額: {previewCash}円</p>}
+              {isOverMonthlyLimit && (
+                <p className="feedback">
+                  今月の残り枠は{limit.monthlyRemaining}円です。ポイント数を減らすか、来月まで待ってね。
+                </p>
+              )}
+              {actionError && <p className="feedback">{actionError}</p>}
+              <button className="button" type="submit" disabled={isSubmitting || isOverMonthlyLimit}>
+                {isSubmitting ? '申請中...' : '申請する'}
+              </button>
+            </form>
           )}
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <label>
-              交換するポイント数
-              <input
-                type="number"
-                min={1}
-                value={pointsCost}
-                onChange={(e) => setPointsCost(e.target.value)}
-                required
-              />
-            </label>
-            <label>
-              メモ(任意)
-              <input value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="例: 欲しいもの" />
-            </label>
-            {previewCash !== null && <p className="hint">受け取り予定額: {previewCash}円</p>}
-            {actionError && <p className="feedback">{actionError}</p>}
-            <button className="button" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '申請中...' : '申請する'}
-            </button>
-          </form>
         </div>
       )}
 
