@@ -5,6 +5,7 @@ import { prisma } from '../db.js';
 import { Role, PurchaseRequestStatus } from '../generated/client.js';
 import { computeAvailablePoints } from '../lib/points.js';
 import { computeExchangeRate, computeRecentAccuracy } from '../lib/exchange.js';
+import { computeExchangeLimit } from '../lib/exchangeLimit.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -14,7 +15,8 @@ router.get('/rate', requireRole(Role.CHILD), asyncHandler(async (req, res) => {
   const recentAccuracy = await computeRecentAccuracy(username);
   const rate = computeExchangeRate(recentAccuracy);
   const availablePoints = await computeAvailablePoints(username);
-  res.json({ rate, recentAccuracy, availablePoints });
+  const limit = await computeExchangeLimit(username);
+  res.json({ rate, recentAccuracy, availablePoints, limit });
 }));
 
 router.post('/', requireRole(Role.CHILD), asyncHandler(async (req, res) => {
@@ -33,9 +35,22 @@ router.post('/', requireRole(Role.CHILD), asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'You do not have enough available points for this request.' });
   }
 
+  const limit = await computeExchangeLimit(child.username);
+  if (!limit.unlocked) {
+    return res.status(400).json({
+      message: `おこづかい交換はレベル${limit.unlockLevel}から使えます。(いまはレベル${limit.level})`,
+    });
+  }
+
   const recentAccuracy = await computeRecentAccuracy(child.username);
   const rate = computeExchangeRate(recentAccuracy);
   const cashAmount = Math.round(pointsCost * rate);
+
+  if (cashAmount > limit.monthlyRemaining) {
+    return res.status(400).json({
+      message: `今月の交換上限をこえています。レベル${limit.level}の月間上限は${limit.monthlyLimit}円、今月の残りは${limit.monthlyRemaining}円です。`,
+    });
+  }
 
   const request = await prisma.purchaseRequest.create({
     data: {
