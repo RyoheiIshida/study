@@ -53,7 +53,7 @@ function App() {
     <div className="app-shell">
       <header className="top-bar">
         <div className="brand-block">
-          <Link to="/" className="brand-mark">スタディゲーム</Link>
+          <Link to="/" className="brand-mark">クイズゲーム</Link>
           <p>進捗管理と復習をスムーズに行える、短時間クイズセッション。</p>
         </div>
         <nav className="nav-links" aria-label="メインナビゲーション">
