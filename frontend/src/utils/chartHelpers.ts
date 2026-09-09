@@ -85,6 +85,7 @@ export interface CalendarDay {
   date: string;
   questions: number;
   xp: number;
+  durationMs: number;
   level: number;
   isToday: boolean;
   isFuture: boolean;
@@ -126,6 +127,7 @@ export function buildActivityCalendar(dailyXp: DailyXpPoint[], weeks = 18): Cale
         date: key,
         questions,
         xp: point?.xp ?? 0,
+        durationMs: point?.durationMs ?? 0,
         level: questions === 0 ? 0 : Math.min(4, Math.ceil((questions / maxQuestions) * 4)),
         isToday: key === todayKey,
         isFuture: cursor > today,
@@ -149,4 +151,22 @@ export function countRecentStudyDays(dailyXp: DailyXpPoint[], days: number): num
   cutoff.setDate(cutoff.getDate() - (days - 1));
   const cutoffKey = toDateKey(cutoff);
   return dailyXp.filter((point) => point.date >= cutoffKey).length;
+}
+
+/**
+ * Renders a millisecond duration for the analytics cards. Returns a dash when
+ * there is nothing measured yet, so old sessions without timing do not look
+ * like zero-second study time.
+ */
+export function formatDuration(ms: number | null): string {
+  if (ms === null || !Number.isFinite(ms) || ms <= 0) return '-';
+
+  const totalSeconds = Math.round(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) return `${hours}時間${minutes}分`;
+  if (minutes > 0) return `${minutes}分${seconds}秒`;
+  return `${seconds}秒`;
 }

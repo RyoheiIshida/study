@@ -52,6 +52,8 @@ export interface ProgressRecord {
   total: number;
   correct: number;
   streak: number;
+  /** Wall-clock time for one play-through. Absent on records saved before session timing existed. */
+  durationMs?: number;
   lastPlayed: string;
 }
 
@@ -70,6 +72,7 @@ export interface DailyXpPoint {
   cumulativeXp: number;
   questions: number;
   attempts: number;
+  durationMs: number;
 }
 
 export interface LevelUpEvent {
@@ -85,6 +88,9 @@ export interface XpSummary {
   progressPercent: number;
   attemptCount: number;
   studyDays: number;
+  timedAttemptCount: number;
+  totalDurationMs: number;
+  averageSessionMs: number | null;
   dailyXp: DailyXpPoint[];
   levelUps: LevelUpEvent[];
 }
@@ -195,4 +201,30 @@ export interface AnswerSpeedTrendPoint {
   difficulty: string;
   averageSeconds: number;
   count: number;
+}
+
+export interface LoginRateWindow {
+  days: number;
+  loginDays: number;
+  rate: number;
+}
+
+export interface LoginDayDot {
+  date: string;
+  loggedIn: boolean;
+  visitCount: number;
+}
+
+export interface LoginSummary {
+  today: string;
+  loggedInToday: boolean;
+  totalDays: number;
+  currentStreak: number;
+  longestStreak: number;
+  firstLoginDate: string | null;
+  lastLoginDate: string | null;
+  totalVisits: number;
+  sinceRegistration: LoginRateWindow;
+  recentWindow: LoginRateWindow;
+  recentDays: LoginDayDot[];
 }

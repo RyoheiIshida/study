@@ -26,6 +26,7 @@ model User {
   progress     ProgressRecord[]
   quizAttempts QuizAttempt[]
   answerRecords AnswerRecord[]
+  loginRecords LoginRecord[]
 
   parentId Int?
   parent   User?  @relation("ParentChild", fields: [parentId], references: [id])
@@ -125,6 +126,7 @@ model QuizAttempt {
   total    Int
   correct  Int
   streak   Int
+  durationMs Int?
   playedAt DateTime @default(now())
 
   @@index([username, playedAt])
@@ -143,4 +145,20 @@ model AnswerRecord {
   answeredAt DateTime @default(now())
 
   @@index([username, difficulty, answeredAt])
+}
+
+/// One row per calendar day (JST) on which the user opened the app while
+/// signed in. Logging in is enough to create a row, so this tracks the habit
+/// of showing up rather than how much studying happened.
+model LoginRecord {
+  id          Int      @id @default(autoincrement())
+  username    String
+  user        User     @relation(fields: [username], references: [username])
+  date        String
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  visitCount  Int      @default(1)
+
+  @@unique([username, date])
+  @@index([username, date])
 }

@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthCredentials, AuthUser, AuthResponse } from '../types';
 import { TOKEN_KEY, fetchCurrentUser, login as loginApi, register as registerApi } from '../api/auth';
+import { recordLoginDay } from '../api/loginDays';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -39,6 +40,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Opening the app with a valid session already counts as a login for the
+  // day, so restoring a stored token checks in just like a fresh sign-in does.
+  // The backend keys the record by JST date, so extra calls are harmless; the
+  // ref only avoids pointless requests within one page load.
+  const checkedInFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!user) {
+      checkedInFor.current = null;
+      return;
+    }
+    if (checkedInFor.current === user.username) return;
+    checkedInFor.current = user.username;
+    recordLoginDay().catch(() => {
+      checkedInFor.current = null;
+    });
+  }, [user]);
 
   const setSession = useCallback((auth: AuthResponse) => {
     localStorage.setItem(TOKEN_KEY, auth.token);

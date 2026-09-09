@@ -4,6 +4,7 @@ import { signToken, requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 import { Role } from '../generated/client.js';
+import { recordLoginDay } from '../lib/loginDays.js';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.post('/register', asyncHandler(async (req, res) => {
   const passwordHash = await bcrypt.hash(password, 10);
   const resolvedRole: Role = role === 'PARENT' ? Role.PARENT : Role.CHILD;
   await prisma.user.create({ data: { username, passwordHash, role: resolvedRole } });
+  await recordLoginDay(username);
   const token = signToken({ username, role: resolvedRole });
 
   return res.status(201).json({ token, user: { username, role: resolvedRole } });
@@ -45,6 +47,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     return res.status(401).json({ message: 'Username or password is incorrect.' });
   }
 
+  await recordLoginDay(user.username);
   const token = signToken({ username: user.username, role: user.role });
   return res.json({ token, user: { username: user.username, role: user.role } });
 }));

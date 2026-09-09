@@ -21,6 +21,7 @@ router.post('/', asyncHandler(async (req, res) => {
     total?: number;
     correct?: number;
     streak?: number;
+    durationMs?: number;
     lastPlayed?: string;
   };
 
@@ -28,6 +29,13 @@ router.post('/', asyncHandler(async (req, res) => {
     res.status(400).json({ message: 'Invalid progress payload' });
     return;
   }
+
+  // Sessions saved by an older client, or before duration tracking existed,
+  // carry no duration rather than a misleading zero.
+  const durationMs =
+    typeof record.durationMs === 'number' && Number.isFinite(record.durationMs) && record.durationMs >= 0
+      ? Math.round(record.durationMs)
+      : null;
 
   const payload = {
     username: req.user!.username,
@@ -57,6 +65,7 @@ router.post('/', asyncHandler(async (req, res) => {
         total: payload.total,
         correct: payload.correct,
         streak: payload.streak,
+        durationMs,
         playedAt: payload.lastPlayed,
       },
     }),
