@@ -10,7 +10,8 @@
     "build": "tsc",
     "migrate": "prisma migrate dev --name init",
     "migrate:deploy": "prisma migrate deploy",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "backfill:login-days": "tsx prisma/backfillLoginRecords.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

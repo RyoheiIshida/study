@@ -51,6 +51,9 @@ function QuestionChallenge() {
   const [awaitingNext, setAwaitingNext] = useState(false);
   const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false);
   const questionStartRef = useRef(Date.now());
+  // Starts when the first question appears, so loading time is not counted as
+  // study time. Reset per play-through, including retries.
+  const sessionStartRef = useRef<number | null>(null);
   const answerScrollRef = useRef<HTMLDivElement | null>(null);
 
   const isTextInput = quiz?.subject === 'Japanese';
@@ -85,6 +88,7 @@ function QuestionChallenge() {
     setAnswerLog([]);
     setAwaitingNext(false);
     setLastAnswerCorrect(false);
+    sessionStartRef.current = null;
   }
 
   const currentQuestion = useMemo(() => quiz?.questions[state.currentQuestionIndex], [quiz, state.currentQuestionIndex]);
@@ -94,6 +98,9 @@ function QuestionChallenge() {
   useEffect(() => {
     if (currentQuestion && !awaitingNext) {
       questionStartRef.current = Date.now();
+      if (sessionStartRef.current === null) {
+        sessionStartRef.current = questionStartRef.current;
+      }
       answerScrollRef.current?.scrollTo(0, 0);
     }
   }, [currentQuestion, awaitingNext]);
@@ -219,6 +226,7 @@ function QuestionChallenge() {
       correct: state.correctCount,
       // 途中で1問まちがえても記録が0に戻らないよう、そのプレイ中の最高連続正解数を残す。
       streak: state.bestStreak,
+      durationMs: sessionStartRef.current === null ? undefined : Date.now() - sessionStartRef.current,
       lastPlayed: new Date().toISOString(),
     };
 

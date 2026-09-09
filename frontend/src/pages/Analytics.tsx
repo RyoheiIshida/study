@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { fetchXpSummary } from '../api/xp';
 import { fetchAnswerSpeedTrend } from '../api/answerSpeed';
-import { AnswerSpeedTrendPoint, ProgressRecord, Quiz, XpSummary } from '../types';
+import { fetchLoginSummary } from '../api/loginDays';
+import { AnswerSpeedTrendPoint, LoginSummary, ProgressRecord, Quiz, XpSummary } from '../types';
 import {
   buildActivityCalendar,
   buildSubjectSummary,
   buildTrend,
   countRecentStudyDays,
+  formatDuration,
   getAccuracy,
   getTotals,
 } from '../utils/chartHelpers';
@@ -22,6 +24,8 @@ function Analytics() {
   const [xpError, setXpError] = useState(false);
   const [speedTrend, setSpeedTrend] = useState<AnswerSpeedTrendPoint[]>([]);
   const [speedError, setSpeedError] = useState(false);
+  const [loginSummary, setLoginSummary] = useState<LoginSummary | null>(null);
+  const [loginError, setLoginError] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -44,6 +48,14 @@ function Analytics() {
       } catch {
         setSpeedTrend([]);
         setSpeedError(true);
+      }
+
+      try {
+        setLoginSummary(await fetchLoginSummary());
+        setLoginError(false);
+      } catch {
+        setLoginSummary(null);
+        setLoginError(true);
       }
 
       setLoading(false);
@@ -97,7 +109,84 @@ function Analytics() {
             <span>直近30日の学習日数</span>
             <strong>{studyDaysLast30}日</strong>
           </div>
+          <div className="stat-card">
+            <span>1セッションの平均時間</span>
+            <strong>{formatDuration(xpSummary?.averageSessionMs ?? null)}</strong>
+            {Boolean(xpSummary?.timedAttemptCount) && (
+              <small>計測できた{xpSummary!.timedAttemptCount}セッションの平均</small>
+            )}
+          </div>
+          <div className="stat-card">
+            <span>累計の学習時間</span>
+            <strong>{formatDuration(xpSummary?.totalDurationMs ?? null)}</strong>
+          </div>
         </div>
+      </div>
+
+      <div className="panel">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">ログイン記録</p>
+            <h2>どれくらい続けられているか</h2>
+            <p>アプリを開いた日は、問題を解かなくてもログイン日として記録されます。</p>
+          </div>
+        </div>
+        {loginError && <p className="feedback">ログイン記録を取得できませんでした。時間をおいて再度お試しください。</p>}
+        {loading ? (
+          <p>ログイン記録を読み込み中...</p>
+        ) : !loginSummary ? (
+          <p>ログイン記録はまだありません。</p>
+        ) : (
+          <>
+            <div className="stat-grid">
+              <div className="stat-card">
+                <span>累計ログイン日数</span>
+                <strong>{loginSummary.totalDays}日</strong>
+              </div>
+              <div className="stat-card">
+                <span>連続ログイン日数</span>
+                <strong>{loginSummary.currentStreak}日</strong>
+              </div>
+              <div className="stat-card">
+                <span>最長連続ログイン</span>
+                <strong>{loginSummary.longestStreak}日</strong>
+              </div>
+              <div className="stat-card">
+                <span>ログイン率（登録日から）</span>
+                <strong>{loginSummary.sinceRegistration.rate}%</strong>
+                <small>
+                  {loginSummary.sinceRegistration.loginDays} / {loginSummary.sinceRegistration.days}日
+                </small>
+              </div>
+              <div className="stat-card">
+                <span>ログイン率（直近{loginSummary.recentWindow.days}日）</span>
+                <strong>{loginSummary.recentWindow.rate}%</strong>
+                <small>
+                  {loginSummary.recentWindow.loginDays} / {loginSummary.recentWindow.days}日
+                </small>
+              </div>
+              <div className="stat-card">
+                <span>今日のログイン</span>
+                <strong>{loginSummary.loggedInToday ? '記録済み' : 'まだ'}</strong>
+              </div>
+            </div>
+            <div className="login-strip" role="img" aria-label={`直近${loginSummary.recentWindow.days}日のログイン状況`}>
+              {loginSummary.recentDays.map((day) => (
+                <span
+                  key={day.date}
+                  className={`login-dot${day.loggedIn ? ' login-dot-on' : ''}${
+                    day.date === loginSummary.today ? ' login-dot-today' : ''
+                  }`}
+                  title={day.loggedIn ? `${day.date}：ログイン${day.visitCount}回` : `${day.date}：ログインなし`}
+                />
+              ))}
+            </div>
+            <p className="login-strip-caption">
+              直近{loginSummary.recentWindow.days}日のログイン状況です。
+              {loginSummary.firstLoginDate && `初回ログインは ${loginSummary.firstLoginDate} でした。`}
+            </p>
+          </>
+        )}
       </div>
 
       <div className="panel">
@@ -126,7 +215,9 @@ function Analytics() {
                           day.isFuture ? ' calendar-day-future' : ''
                         }`}
                         data-level={day.level}
-                        title={`${day.date}：問題${day.questions}問 / ${day.xp}XP`}
+                        title={`${day.date}：問題${day.questions}問 / ${day.xp}XP${
+                          day.durationMs > 0 ? ` / 学習時間${formatDuration(day.durationMs)}` : ''
+                        }`}
                       />
                     ))}
                   </div>

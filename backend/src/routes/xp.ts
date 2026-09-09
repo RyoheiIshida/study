@@ -23,17 +23,27 @@ router.get('/', asyncHandler(async (req, res) => {
   let cumulativeXp = 0;
   let previousLevel = 1;
   const levelUps: Array<{ level: number; at: string }> = [];
-  const dailyMap = new Map<string, { xp: number; questions: number; attempts: number }>();
+  const dailyMap = new Map<string, { xp: number; questions: number; attempts: number; durationMs: number }>();
+
+  // Attempts recorded before session timing existed have no duration, so they
+  // are excluded from the averages instead of counting as zero-second sessions.
+  let timedAttemptCount = 0;
+  let totalDurationMs = 0;
 
   for (const attempt of attempts) {
     const xp = computeAttemptXp(attempt);
     cumulativeXp += xp;
 
     const dateKey = jstDateKey(attempt.playedAt);
-    const entry = dailyMap.get(dateKey) ?? { xp: 0, questions: 0, attempts: 0 };
+    const entry = dailyMap.get(dateKey) ?? { xp: 0, questions: 0, attempts: 0, durationMs: 0 };
     entry.xp += xp;
     entry.questions += attempt.total;
     entry.attempts += 1;
+    if (attempt.durationMs !== null) {
+      entry.durationMs += attempt.durationMs;
+      timedAttemptCount += 1;
+      totalDurationMs += attempt.durationMs;
+    }
     dailyMap.set(dateKey, entry);
 
     const { level } = getLevelProgress(cumulativeXp);
@@ -54,6 +64,7 @@ router.get('/', asyncHandler(async (req, res) => {
         cumulativeXp: runningCumulative,
         questions: entry.questions,
         attempts: entry.attempts,
+        durationMs: entry.durationMs,
       };
     });
 
@@ -63,6 +74,9 @@ router.get('/', asyncHandler(async (req, res) => {
     ...progress,
     attemptCount: attempts.length,
     studyDays: dailyMap.size,
+    timedAttemptCount,
+    totalDurationMs,
+    averageSessionMs: timedAttemptCount > 0 ? Math.round(totalDurationMs / timedAttemptCount) : null,
     dailyXp,
     levelUps,
   });
