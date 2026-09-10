@@ -4,6 +4,7 @@ import { useQuizStore } from '../hooks/useQuizStore';
 import { Quiz, Subject } from '../types';
 import { subjectLabel, gradeLabel } from '../utils/labels';
 import { findGroupByQuizId } from '../utils/quizGroups';
+import { isRhythmEligible } from '../music/chart';
 import DailyQuestPanel from '../components/DailyQuestPanel';
 
 const subjectOptions: Subject[] = ['Math'];
@@ -16,6 +17,8 @@ interface QuizListEntry {
   description: string;
   questionCount: number;
   linkTo: string;
+  /** 音ゲーモードで遊べる場合の遷移先クイズID。難易度グループは個別ページ側で案内する。 */
+  rhythmQuizId: string | null;
 }
 
 function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
@@ -33,6 +36,7 @@ function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
         description: quiz.description,
         questionCount: quiz.questions.length,
         linkTo: `/challenge/${quiz.id}`,
+        rhythmQuizId: isRhythmEligible(quiz) ? quiz.id : null,
       });
       continue;
     }
@@ -49,6 +53,7 @@ function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
       description: group.description,
       questionCount: memberQuizzes.reduce((total, item) => total + item.questions.length, 0),
       linkTo: `/group/${group.id}`,
+      rhythmQuizId: null,
     });
   }
 
@@ -105,6 +110,9 @@ function QuizList() {
                 <p className="hint">問題数 {entry.questionCount}問</p>
                 <div className="card-actions">
                   <Link to={entry.linkTo} className="button">開始</Link>
+                  {entry.rhythmQuizId && (
+                    <Link to={`/rhythm/${entry.rhythmQuizId}`} className="button secondary">♪ 音ゲー</Link>
+                  )}
                 </div>
               </article>
             ))}

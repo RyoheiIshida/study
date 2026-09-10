@@ -1143,3 +1143,243 @@ body.solving-mode .challenge-panel {
   font-size: 0.85rem;
   margin-top: 10px;
 }
+
+/* ===== 音ゲーモード ===== */
+
+.rhythm-panel {
+  background: #0b1417;
+  color: #f3f5f4;
+  gap: 0;
+  padding: 0;
+}
+
+.rhythm-hud {
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  gap: 12px;
+  padding: 10px 16px;
+}
+
+.rhythm-hud-item {
+  color: #cfe0dd;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  min-width: 90px;
+}
+
+.rhythm-quit {
+  margin-left: auto;
+  padding: 6px 14px;
+}
+
+.rhythm-question {
+  min-height: 96px;
+  padding: 14px 16px 8px;
+  position: relative;
+  text-align: center;
+}
+
+.rhythm-question h3 {
+  color: #ffffff;
+  font-size: clamp(1.3rem, 4.5vw, 2.1rem);
+  margin: 0;
+}
+
+.rhythm-countin {
+  color: #7f9aa0 !important;
+}
+
+.rhythm-judge {
+  animation: rhythm-judge-pop 0.45s ease-out forwards;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin: 6px 0 0;
+}
+
+.rhythm-judge.perfect { color: #f2c14e; }
+.rhythm-judge.great { color: #2dd4bf; }
+.rhythm-judge.good { color: #7aa7e0; }
+.rhythm-judge.miss { color: #f28b82; }
+
+.rhythm-judge-mark {
+  margin-left: 10px;
+}
+
+.rhythm-judge.incorrect .rhythm-judge-mark { color: #f28b82; }
+.rhythm-judge.correct .rhythm-judge-mark { color: #7ee0c0; }
+
+@keyframes rhythm-judge-pop {
+  0% { opacity: 0; transform: scale(0.85); }
+  25% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0.55; transform: scale(1); }
+}
+
+.note-highway {
+  flex: 1;
+  min-height: 160px;
+  position: relative;
+}
+
+.note-highway canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.rhythm-lanes {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 8px;
+}
+
+.rhythm-lane-button {
+  background: #16262b;
+  border: 2px solid #2dd4bf;
+  border-radius: 12px;
+  color: #f3f5f4;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  min-height: 76px;
+  padding: 8px 4px;
+  touch-action: none;
+  user-select: none;
+}
+
+.rhythm-lane-button:active {
+  background: #24393f;
+}
+
+.rhythm-lane-key {
+  color: #8fa8ad;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.rhythm-lane-option {
+  font-size: clamp(1rem, 3.6vw, 1.5rem);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+/* --- スタート画面とリザルト --- */
+
+.rhythm-start {
+  display: grid;
+  gap: 18px;
+}
+
+.rhythm-song-card {
+  background: #0b1417;
+  border-radius: 14px;
+  color: #f3f5f4;
+  padding: 14px 18px;
+}
+
+.rhythm-song-card h3 {
+  margin: 4px 0;
+}
+
+.rhythm-song-card .eyebrow,
+.rhythm-song-card .hint {
+  color: #9fb7bb;
+}
+
+.rhythm-howto ol {
+  color: var(--muted);
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding-left: 1.2rem;
+}
+
+.rhythm-howto kbd {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-family: inherit;
+  font-weight: 700;
+  padding: 1px 7px;
+}
+
+.rhythm-setting-row {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+}
+
+.rhythm-tier-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rhythm-volume {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-weight: 700;
+  gap: 12px;
+}
+
+.rhythm-volume input[type='range'] {
+  accent-color: var(--accent);
+  flex: 1;
+  max-width: 280px;
+}
+
+.rhythm-volume span {
+  font-variant-numeric: tabular-nums;
+  min-width: 64px;
+}
+
+.rhythm-judge-summary {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 16px 0;
+}
+
+.rhythm-judge-tally {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: grid;
+  gap: 2px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.rhythm-judge-tally-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.rhythm-judge-tally.perfect .rhythm-judge-tally-label { color: var(--gold); }
+.rhythm-judge-tally.great .rhythm-judge-tally-label { color: var(--accent); }
+.rhythm-judge-tally.good .rhythm-judge-tally-label { color: #4f7fb8; }
+.rhythm-judge-tally.miss .rhythm-judge-tally-label { color: var(--rose); }
+
+.rhythm-judge-tally-count {
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+
+@media (max-width: 560px) {
+  .rhythm-hud-item {
+    font-size: 0.8rem;
+    min-width: 0;
+  }
+
+  .rhythm-lane-button {
+    min-height: 88px;
+  }
+}
