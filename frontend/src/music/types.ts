@@ -30,6 +30,12 @@ export interface Song {
   /** 曲の雰囲気を1行で。スタート画面に出す。 */
   mood: string;
   bpm: number;
+  /**
+   * 1問に割り当てる拍数の倍率。省略時 1。
+   * 速い曲ほど1拍が短いので、難易度ごとの拍数をそのまま使うと問題を読む時間が足りなくなる。
+   * BPM を上げたぶんをここで戻し、体感の「1問あたり何秒か」を曲どうしでそろえる。
+   */
+  beatsPerQuestionScale?: number;
   beatsPerBar: number;
   /** 1ループの小節数。曲はこの長さで延々ループする。 */
   loopBars: number;

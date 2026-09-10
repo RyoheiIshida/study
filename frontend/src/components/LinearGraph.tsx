@@ -1,8 +1,11 @@
 import { GraphOption } from '../types';
 
+/** small = 選択肢カード / large = 解説 / lane = 音ゲーのレーンボタン（4つ横並びで小さい）。 */
+type LinearGraphSize = 'small' | 'large' | 'lane';
+
 type LinearGraphProps = {
   option: GraphOption;
-  size?: 'small' | 'large';
+  size?: LinearGraphSize;
 };
 
 const VIEW_MIN = -5;
@@ -79,14 +82,24 @@ function getSlopeMarker(option: GraphOption): SlopeMarker | null {
   return { x0: 0, x1, y0: option.intercept, y1: yAt(option, x1) };
 }
 
+/**
+ * レーン用の表示範囲。軸ラベルの余白を切り落として、方眼だけを枠いっぱいに映す。
+ * 4レーン横並びだと1枚が 80px 前後にしかならないので、この余白の差が読みやすさに効く。
+ */
+const LANE_VIEW_BOX = `${PADDING - 4} ${PADDING - 4} ${PLOT_SIZE + 8} ${PLOT_SIZE + 8}`;
+
 function LinearGraph({ option, size = 'small' }: LinearGraphProps) {
   const axis = toSvg(0);
-  const graphSize = size === 'large' ? 'large' : 'small';
   const label = `傾き${option.slope}、切片${option.intercept}の直線`;
   const marker = getSlopeMarker(option);
 
   return (
-    <svg className={`linear-graph ${graphSize}`} viewBox="0 0 200 200" role="img" aria-label={label}>
+    <svg
+      className={`linear-graph ${size}`}
+      viewBox={size === 'lane' ? LANE_VIEW_BOX : '0 0 200 200'}
+      role="img"
+      aria-label={label}
+    >
       <rect x="0" y="0" width="200" height="200" fill="#fffdf8" />
       {[-4, -3, -2, -1, 1, 2, 3, 4].map((value) => (
         <g key={value}>

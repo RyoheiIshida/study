@@ -1,8 +1,8 @@
 import { Quiz } from '../types';
 import { getDifficultyLabel } from '../utils/quizGroups';
-import { buildLaneOptions } from '../utils/answerOptions';
+import { buildLaneChoices } from '../utils/answerOptions';
 import { Chart, ChartNote, LANES, Lane, Song } from './types';
-import { kanjiNight, numberMarch, sunriseSteps } from './songs';
+import { kanjiNight, numberMarch, slopeLine, songById, sunriseSteps } from './songs';
 
 /**
  * 問題データから譜面を自動生成する。
@@ -21,7 +21,12 @@ export const TIER_LABEL: Record<DifficultyTier, string> = {
   hard: 'むずかしい',
 };
 
-/** 1問に割り当てる拍数。短いほど考える時間が減り、譜面が忙しくなる。 */
+/**
+ * 1問に割り当てる拍数。短いほど考える時間が減り、譜面が忙しくなる。
+ *
+ * これは BPM 100〜140 帯の曲を前提にした値で、そのまま使うと速い曲では秒数が足りない。
+ * 曲側の beatsPerQuestionScale を掛けて、体感の秒数をどの曲でもそろえる。
+ */
 const BEATS_PER_QUESTION: Record<DifficultyTier, number> = {
   easy: 8,
   normal: 6,
@@ -52,22 +57,43 @@ export function songForTier(tier: DifficultyTier): Song {
   }
 }
 
+/** グラフを選ぶ問題（一次関数）かどうか。レーンの見た目も曲もここで分岐する。 */
+export function isGraphQuiz(quiz: Quiz): boolean {
+  return quiz.questions.some((question) => question.graphOptions && question.graphOptions.length > 0);
+}
+
+/**
+ * そのクイズで鳴らす曲。プレイヤーがスタート画面で選んでいれば、それを最優先する。
+ *
+ * 既定は一次関数だけ「スロープライン」にする。旋律が一次関数の直線そのもの
+ * （1拍ごとに音階が一定量ずつ動く）でできていて、傾きの大小が耳でも分かる曲だから。
+ * ただしこの対応づけは既定値どまりで、選び直しは止めない。
+ */
+export function songForQuiz(quiz: Quiz, tier: DifficultyTier, songId?: string | null): Song {
+  const chosen = songId ? songById.get(songId) : undefined;
+  if (chosen) return chosen;
+  if (isGraphQuiz(quiz)) return slopeLine;
+  return songForTier(tier);
+}
+
 /**
  * 音ゲーモードで遊べるクイズかどうか。
- * 4つのレーン＝4つの選択肢という作りなので、記述式とグラフ選択には対応しない。
+ * 4つのレーン＝4つの選択肢という作りなので、記述式には対応しない。
  */
 export function isRhythmEligible(quiz: Quiz): boolean {
   // 国語（漢字）は読みをひらがなで入力する記述式なので、レーンに割り当てられない。
   if (quiz.subject === 'Japanese') return false;
-  // 一次関数のグラフ問題は選択肢がグラフそのもので、レーンのラベルに収まらない。
-  if (quiz.questions.some((question) => question.graphOptions && question.graphOptions.length > 0)) return false;
   if (quiz.questions.length === 0) return false;
   // 正解を含む4つの選択肢に落とせない問題が1つでもあると、その問題は必ず不正解になる。
-  return quiz.questions.every((question) => buildLaneOptions(question) !== null);
+  // グラフ選択問題は4つのグラフがそのままレーンになる（buildLaneChoices が面倒を見る）。
+  return quiz.questions.every((question) => buildLaneChoices(question) !== null);
 }
 
 /** クイズから既定の難易度を決める。プレイヤーはスタート画面で変更できる。 */
 export function defaultTierForQuiz(quiz: Quiz): DifficultyTier {
+  // グラフ問題は4枚のグラフを見比べる時間が要る。中学の問題だからと 'hard'（4拍／問）を
+  // 既定にすると、読み終える前にノーツが判定ラインを通過してしまう。
+  if (isGraphQuiz(quiz)) return 'easy';
   if (getDifficultyLabel(quiz.id).includes('かんたん')) return 'easy';
   if (quiz.grade === 'Middle School') return 'hard';
   return 'normal';
@@ -83,7 +109,7 @@ function guideLane(seed: number): Lane {
 }
 
 export function buildChart(questionCount: number, song: Song, tier: DifficultyTier): Chart {
-  const beatsPerQuestion = BEATS_PER_QUESTION[tier];
+  const beatsPerQuestion = Math.round(BEATS_PER_QUESTION[tier] * (song.beatsPerQuestionScale ?? 1));
   // ノーツの出現＝問題文の表示。両者を同じ拍にそろえると「出た問題がそのまま落ちてくる」
   // という読み方になり、BPM が変わっても迷わない。
   const lookAheadBeats = beatsPerQuestion - 1;
