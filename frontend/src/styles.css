@@ -311,7 +311,11 @@ body.solving-mode .top-bar {
 }
 
 body.solving-mode .app-shell {
+  /* スマホのブラウザでは 100vh がアドレスバーを含んだ高さになり、画面下端の要素が
+     隠れてしまう。overflow: hidden でスクロールもできないので、対応ブラウザでは
+     実際の表示領域を指す 100dvh を使う。 */
   height: 100vh;
+  height: 100dvh;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -1146,10 +1150,15 @@ body.solving-mode .challenge-panel {
 
 /* ===== 音ゲーモード ===== */
 
+/* プレイ画面は body.solving-mode の縦フレックス（.challenge-panel）の中に入る。
+   伸び縮みするのはノーツの部分だけで、HUD・問題文・レーンボタンは必ず表示される
+   ようにしたい。ノーツに min-height を持たせるとその下のボタンが画面外へ押し出される
+   ので、ノーツ側は 0 まで縮められるようにしておく。 */
 .rhythm-panel {
   background: #0b1417;
   color: #f3f5f4;
   gap: 0;
+  overflow: hidden;
   padding: 0;
 }
 
@@ -1157,6 +1166,7 @@ body.solving-mode .challenge-panel {
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
+  flex: none;
   gap: 12px;
   padding: 10px 16px;
 }
@@ -1175,8 +1185,12 @@ body.solving-mode .challenge-panel {
 }
 
 .rhythm-question {
-  min-height: 96px;
-  padding: 14px 16px 8px;
+  /* 判定表示が出たり消えたりしても問題文の位置が動かないよう高さを予約するが、
+     画面が低いときは縮められるようにしておく。 */
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 10px 16px 6px;
   position: relative;
   text-align: center;
 }
@@ -1218,8 +1232,9 @@ body.solving-mode .challenge-panel {
 }
 
 .note-highway {
-  flex: 1;
-  min-height: 160px;
+  /* 余った高さをすべて受け取り、足りなければ 0 まで縮む。ここが唯一の伸縮要素。 */
+  flex: 1 1 0;
+  min-height: 0;
   position: relative;
 }
 
@@ -1231,12 +1246,15 @@ body.solving-mode .challenge-panel {
 
 .rhythm-lanes {
   display: grid;
+  flex: none;
   gap: 6px;
   grid-template-columns: repeat(4, 1fr);
-  padding: 8px;
+  /* iPhone のホームインジケータにボタンが隠れないよう、下端に安全域を足す。 */
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
 }
 
 .rhythm-lane-button {
+  align-content: center;
   background: #16262b;
   border: 2px solid #2dd4bf;
   border-radius: 12px;
@@ -1244,7 +1262,7 @@ body.solving-mode .challenge-panel {
   cursor: pointer;
   display: grid;
   gap: 2px;
-  min-height: 76px;
+  min-height: 72px;
   padding: 8px 4px;
   touch-action: none;
   user-select: none;
@@ -1379,7 +1397,49 @@ body.solving-mode .challenge-panel {
     min-width: 0;
   }
 
+  .rhythm-lane-option {
+    font-size: clamp(0.95rem, 4.5vw, 1.3rem);
+  }
+}
+
+/* 画面が低いとき（横向きのスマホ、小さいノートPCなど）は固定部分を詰める。
+   ここを詰めないと、伸縮するノーツ部分が 0 まで縮んでも足りずに
+   レーンボタンが画面外へはみ出す。 */
+@media (max-height: 620px) {
+  .rhythm-hud {
+    padding: 6px 12px;
+  }
+
+  .rhythm-hud-item {
+    font-size: 0.8rem;
+    min-width: 0;
+  }
+
+  .rhythm-question {
+    padding: 6px 12px 4px;
+  }
+
+  .rhythm-question h3 {
+    font-size: clamp(1.05rem, 3.6vh, 1.6rem);
+  }
+
+  .rhythm-judge {
+    font-size: 0.9rem;
+    margin-top: 2px;
+  }
+
   .rhythm-lane-button {
-    min-height: 88px;
+    min-height: 54px;
+    padding: 6px 4px;
+  }
+}
+
+@media (max-height: 460px) {
+  .rhythm-lane-button {
+    min-height: 44px;
+  }
+
+  .rhythm-lane-key {
+    display: none;
   }
 }
