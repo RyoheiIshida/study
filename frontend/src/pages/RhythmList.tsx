@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { fetchQuizzes } from '../api/quiz';
 import { Quiz } from '../types';
 import { gradeLabel, subjectLabel } from '../utils/labels';
-import { TIER_LABEL, defaultTierForQuiz, isRhythmEligible, songForTier } from '../music/chart';
+import { TIER_LABEL, defaultTierForQuiz, isGraphQuiz, isRhythmEligible, songForQuiz } from '../music/chart';
 
 /**
  * 音ゲーモードで遊べるクイズの一覧。
@@ -56,7 +56,7 @@ function RhythmList() {
           <div className="grid-list">
             {quizzes.map((quiz) => {
               const tier = defaultTierForQuiz(quiz);
-              const song = songForTier(tier);
+              const song = songForQuiz(quiz, tier);
               return (
                 <article key={quiz.id} className="card quiz-card">
                   <div className="card-header">
@@ -67,6 +67,7 @@ function RhythmList() {
                   <p>{quiz.description}</p>
                   <p className="hint">
                     ♪ {song.title}（BPM {song.bpm}・{TIER_LABEL[tier]}）・問題数 {quiz.questions.length}問
+                    {isGraphQuiz(quiz) && ' ・レーンにグラフが並びます'}
                   </p>
                   <div className="card-actions">
                     <Link to={`/rhythm/${quiz.id}`} className="button">音ゲーで開始</Link>

@@ -8,9 +8,10 @@ import { saveAnswerSpeedRecords } from '../api/answerSpeed';
 import { AnswerSpeedRecord, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import { pickSessionQuestions } from '../utils/shuffle';
 import { getDifficultyLabel } from '../utils/quizGroups';
-import { buildLaneOptions, getAnswerValue } from '../utils/answerOptions';
+import { LaneChoice, buildLaneChoices } from '../utils/answerOptions';
 import { normalizeReading } from '../utils/reading';
 import NoteHighway, { LANE_COLORS } from '../components/NoteHighway';
+import LinearGraph from '../components/LinearGraph';
 import { AudioEngine } from '../music/engine';
 import {
   DIFFICULTY_TIERS,
@@ -18,10 +19,13 @@ import {
   TIER_LABEL,
   buildChart,
   defaultTierForQuiz,
+  isGraphQuiz,
   isRhythmEligible,
   questionIndexAtBeat,
+  songForQuiz,
   songForTier,
 } from '../music/chart';
+import { songs } from '../music/songs';
 import {
   JUDGE_LABEL,
   JUDGE_WINDOWS_MS,
@@ -35,6 +39,31 @@ import { LANE_KEYS, LANES, Lane } from '../music/types';
 import { RhythmSettings, loadSettings, medianOffsetMs, saveSettings } from '../music/settings';
 
 type Phase = 'loading' | 'ready' | 'playing' | 'finished';
+
+/** レーンボタン1つぶん。2択の問題では2レーンをまとめて1つの広いボタンにする。 */
+interface LaneGroup {
+  /** このボタンが受け持つレーン。叩かれたときは先頭のレーンとして判定する。 */
+  lanes: Lane[];
+  choice: LaneChoice | undefined;
+}
+
+/**
+ * 同じ選択肢が続くレーンをひとまとめにする。
+ * 2択の問題は [A, A, B, B] の形で渡ってくるので、A と B の2つの広いボタンになる。
+ */
+function groupLanes(choices: LaneChoice[]): LaneGroup[] {
+  const groups: LaneGroup[] = [];
+  for (const lane of LANES) {
+    const choice = choices[lane];
+    const last = groups[groups.length - 1];
+    if (last && choice && last.choice && last.choice.value === choice.value) {
+      last.lanes.push(lane);
+    } else {
+      groups.push({ lanes: [lane], choice });
+    }
+  }
+  return groups;
+}
 
 interface QuestionResult {
   index: number;
@@ -62,6 +91,8 @@ function RhythmChallenge() {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [tier, setTier] = useState<DifficultyTier>('normal');
+  /** プレイヤーが選んだ曲の id。null なら難易度から決まる既定の曲を鳴らす。 */
+  const [songId, setSongId] = useState<string | null>(null);
   const [settings, setSettings] = useState<RhythmSettings>(() => loadSettings());
 
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -103,6 +134,8 @@ function RhythmChallenge() {
       }
       setQuiz({ ...result, questions: pickSessionQuestions(result.questions) });
       setTier(defaultTierForQuiz(result));
+      // クイズが変われば既定の曲も変わる。前のクイズで選んだ曲は持ち越さない。
+      setSongId(null);
       setPhase('ready');
     });
     fetchXpSummary().then(setXpBefore).catch(() => setXpBefore(null));
@@ -121,7 +154,10 @@ function RhythmChallenge() {
     return () => document.body.classList.remove('solving-mode');
   }, [phase]);
 
-  const song = useMemo(() => songForTier(tier), [tier]);
+  const song = useMemo(
+    () => (quiz ? songForQuiz(quiz, tier, songId) : songForTier(tier)),
+    [quiz, tier, songId],
+  );
   const eligible = quiz ? isRhythmEligible(quiz) : true;
   const chart = useMemo(
     () => (quiz && eligible ? buildChart(quiz.questions.length, song, tier) : null),
@@ -130,8 +166,8 @@ function RhythmChallenge() {
 
   /** レーンに並べる選択肢。1プレイのあいだ固定にしたいので問題ごとに一度だけ作る。 */
   // isRhythmEligible がすべての問題で4つに落とせることを確認済みなので、ここで null にはならない。
-  const laneOptions = useMemo(
-    () => (quiz ? quiz.questions.map((question) => buildLaneOptions(question) ?? []) : []),
+  const laneChoices = useMemo<LaneChoice[][]>(
+    () => (quiz ? quiz.questions.map((question) => buildLaneChoices(question) ?? []) : []),
     [quiz],
   );
 
@@ -164,16 +200,16 @@ function RhythmChallenge() {
 
       const index = questionIndexAtBeat(chart, beat);
       if (index < 0 || judgedRef.current.has(index)) return;
-      const option = laneOptions[index]?.[lane];
-      if (option === undefined) return;
+      const choice = laneChoices[index]?.[lane];
+      if (choice === undefined) return;
 
       const deltaMs = (beat - chart.answerBeats[index]) * engine.msPerBeat;
       const elapsedMs = Math.max((beat - chart.questionStartBeats[index]) * engine.msPerBeat, 0);
       // 叩いたレーンだけが正誤を決める。タイミングはスコアと演出にしか効かない。
-      const correct = normalizeReading(getAnswerValue(option)) === normalizeReading(quiz.questions[index].answer);
+      const correct = normalizeReading(choice.value) === normalizeReading(quiz.questions[index].answer);
       registerAnswer(index, lane, judgeTiming(deltaMs), correct, elapsedMs);
     },
-    [phase, chart, quiz, laneOptions, engine, registerAnswer],
+    [phase, chart, quiz, laneChoices, engine, registerAnswer],
   );
 
   // 進行の監視。表示中の問題の切り替えと、叩けなかった問題の取りこぼし判定を行う。
@@ -367,8 +403,7 @@ function RhythmChallenge() {
         <p className="eyebrow">音ゲーモード</p>
         <h2>{quiz.title}</h2>
         <p>
-          このクイズは記述式またはグラフ選択のため、4つのレーンに割り当てられません。
-          通常モードで挑戦してください。
+          このクイズは記述式のため、4つのレーンに割り当てられません。通常モードで挑戦してください。
         </p>
         <div className="card-actions">
           <Link to={`/challenge/${quiz.id}`} className="button">通常モードで開始</Link>
@@ -379,7 +414,15 @@ function RhythmChallenge() {
   }
 
   const activeQuestion = activeIndex >= 0 ? quiz.questions[activeIndex] : null;
-  const activeOptions = activeIndex >= 0 ? laneOptions[activeIndex] : [];
+  const activeChoices: LaneChoice[] = activeIndex >= 0 ? laneChoices[activeIndex] : [];
+  // グラフ問題ではレーンにグラフを描く。ボタンの高さも中身も変わるので、
+  // 曲の途中で切り替わらないようクイズ単位で決める。
+  const graphMode = isGraphQuiz(quiz);
+  const laneGroups = groupLanes(activeChoices);
+  // 1問の持ち時間は「拍数 ÷ BPM」で決まる。拍だけ出しても速さが伝わらないので秒も添える。
+  const secondsPerQuestion = ((chart.beatsPerQuestion * 60) / song.bpm).toFixed(1);
+  // 見比べるグラフの枚数。2択のクイズでは1つの選択肢が2レーンに広がるので、レーン数とは違う。
+  const choiceCount = new Set((laneChoices[0] ?? []).map((choice) => choice.value)).size;
   const totalJudged = judgeCounts.perfect + judgeCounts.great + judgeCounts.good + judgeCounts.miss;
 
   if (phase === 'playing') {
@@ -422,22 +465,38 @@ function RhythmChallenge() {
             laneFlashRef={laneFlashRef}
           />
 
-          <div className="rhythm-lanes" role="group" aria-label="選択肢のレーン">
-            {LANES.map((lane) => (
-              <button
-                key={lane}
-                type="button"
-                className="rhythm-lane-button"
-                style={{ borderColor: LANE_COLORS[lane] }}
-                onPointerDown={(event) => {
-                  event.preventDefault();
-                  handleLaneHit(lane);
-                }}
-              >
-                <span className="rhythm-lane-key">{LANE_KEYS[lane].toUpperCase()}</span>
-                <span className="rhythm-lane-option">{activeOptions[lane] ?? '—'}</span>
-              </button>
-            ))}
+          <div
+            className={graphMode ? 'rhythm-lanes graph' : 'rhythm-lanes'}
+            role="group"
+            aria-label="選択肢のレーン"
+          >
+            {laneGroups.map(({ lanes, choice }) => {
+              const lane = lanes[0];
+              return (
+                <button
+                  key={lane}
+                  type="button"
+                  className="rhythm-lane-button"
+                  style={{ borderColor: LANE_COLORS[lane], gridColumn: `span ${lanes.length}` }}
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    handleLaneHit(lane);
+                  }}
+                >
+                  <span className="rhythm-lane-key">
+                    {lanes.map((item) => LANE_KEYS[item].toUpperCase()).join(' / ')}
+                  </span>
+                  {choice?.graph ? (
+                    <span className="rhythm-lane-graph">
+                      <LinearGraph option={choice.graph} size="lane" />
+                      <span className="rhythm-lane-graph-label">{choice.label}</span>
+                    </span>
+                  ) : (
+                    <span className="rhythm-lane-option">{choice?.label ?? '—'}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -504,7 +563,9 @@ function RhythmChallenge() {
             <ul className="answer-review-list">
               {[...resultsRef.current].sort((a, b) => a.index - b.index).map((result) => {
                 const question = quiz.questions[result.index];
-                const chosen = result.lane === null ? '(未回答)' : laneOptions[result.index][result.lane];
+                const choices = laneChoices[result.index];
+                const chosen = result.lane === null ? null : choices[result.lane];
+                const answer = choices.find((choice) => choice.value === question.answer);
                 return (
                   <li
                     key={question.id + result.index}
@@ -512,10 +573,28 @@ function RhythmChallenge() {
                   >
                     <p className="answer-review-question">問題 {result.index + 1}: {question.text}</p>
                     <p>
-                      あなたの回答: {chosen} {result.correct ? '◯' : '✕'}
+                      あなたの回答: {chosen?.label ?? '(未回答)'} {result.correct ? '◯' : '✕'}
                       <span className="answer-review-time">（{JUDGE_LABEL[result.kind]}）</span>
                     </p>
                     {!result.correct && <p>正しい回答: {question.answer}</p>}
+                    {/* グラフ問題は記号（A・B）だけ見ても何を選んだのか分からないので、
+                        選んだグラフと正解のグラフを並べて描く。 */}
+                    {graphMode && !result.correct && (
+                      <div className="answer-review-graphs">
+                        {chosen?.graph && (
+                          <figure className="answer-review-graph">
+                            <LinearGraph option={chosen.graph} size="small" />
+                            <figcaption>あなたの回答 {chosen.label}</figcaption>
+                          </figure>
+                        )}
+                        {answer?.graph && (
+                          <figure className="answer-review-graph">
+                            <LinearGraph option={answer.graph} size="small" />
+                            <figcaption>正しい回答 {answer.label}</figcaption>
+                          </figure>
+                        )}
+                      </div>
+                    )}
                     {question.explanation && <p className="answer-review-explanation">{question.explanation}</p>}
                   </li>
                 );
@@ -549,10 +628,32 @@ function RhythmChallenge() {
           <p className="hint">{song.mood} ・ BPM {song.bpm} ・ 全{quiz.questions.length}問</p>
         </div>
 
+        <div className="rhythm-setting-row">
+          <p className="eyebrow">曲をえらぶ</p>
+          <div className="rhythm-song-buttons" role="group" aria-label="曲">
+            {songs.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={option.id === song.id ? 'button' : 'button secondary'}
+                onClick={() => setSongId(option.id)}
+              >
+                {option.title}
+              </button>
+            ))}
+          </div>
+          <p className="hint">
+            速い曲を選んでも、1問あたりの時間は変わりません（今: 約{secondsPerQuestion}秒）。
+          </p>
+        </div>
+
         <div className="rhythm-howto">
           <p className="eyebrow">あそびかた</p>
           <ol>
-            <li>問題が出ると、4つのレーンに選択肢が並びます。</li>
+            <li>
+              問題が出ると、4つのレーンに選択肢が並びます。
+              {graphMode && '一次関数ではレーンにグラフが並ぶので、式に合う1枚を探します。'}
+            </li>
             <li>ノーツが判定ラインに重なる瞬間に、<strong>正解の選択肢のレーン</strong>を叩きます。</li>
             <li>キーボードは <kbd>D</kbd> <kbd>F</kbd> <kbd>J</kbd> <kbd>K</kbd>、画面は下のボタンをタップ。</li>
             <li>正誤は「どのレーンを叩いたか」だけで決まります。タイミングはスコアとコンボに効きます。</li>
@@ -574,8 +675,9 @@ function RhythmChallenge() {
             ))}
           </div>
           <p className="hint">
-            むずかしいほど1問あたりの拍が短くなり、曲も速くなります（
-            {TIER_LABEL[tier]}: {chart.beatsPerQuestion}拍／問）。
+            {graphMode
+              ? `むずかしいほど1問あたりの拍が短くなります（${TIER_LABEL[tier]}: ${chart.beatsPerQuestion}拍／問 ＝ 約${secondsPerQuestion}秒）。グラフを${choiceCount}枚見くらべる時間を考えて選んでください。`
+              : `むずかしいほど1問あたりの拍が短くなります（${TIER_LABEL[tier]}: ${chart.beatsPerQuestion}拍／問 ＝ 約${secondsPerQuestion}秒）。`}
           </p>
         </div>
 

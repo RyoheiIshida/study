@@ -848,6 +848,26 @@ body.solving-mode .challenge-panel {
   font-weight: 600;
 }
 
+/* 音ゲーモードの復習で、選んだグラフと正解のグラフを並べる。 */
+.answer-review-graphs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.answer-review-graph {
+  margin: 0;
+  width: min(46%, 150px);
+}
+
+.answer-review-graph figcaption {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
 .trophy-grid {
   display: grid;
   gap: 14px;
@@ -1285,6 +1305,52 @@ body.solving-mode .challenge-panel {
   overflow-wrap: anywhere;
 }
 
+/* --- グラフをレーンに並べるとき（一次関数） --- */
+
+/* グラフは正方形で幅いっぱいに広がるので、隙間と余白を詰めて1枚でも大きく見せる。 */
+.rhythm-lanes.graph {
+  gap: 4px;
+  padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
+}
+
+.rhythm-lanes.graph .rhythm-lane-button {
+  padding: 3px;
+}
+
+.rhythm-lane-graph {
+  display: block;
+  line-height: 0;
+  position: relative;
+}
+
+.rhythm-lane-graph .linear-graph.lane {
+  border-radius: 6px;
+  /* 2択でボタンが2レーンぶんに広がったとき、グラフが縦に伸びすぎて
+     ノーツの流れる場所を潰さないよう、画面の高さでも頭打ちにする。 */
+  margin: 0 auto;
+  width: min(100%, 30vh);
+}
+
+/* どのレーンがどの選択肢か（A・B・C・D）をグラフの隅に重ねる。
+   下に置くとグラフの高さを削るので、余白の上に載せる。 */
+.rhythm-lane-graph-label {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 900;
+  left: 4px;
+  line-height: 1;
+  position: absolute;
+  top: 3px;
+}
+
+/* レーンでは 200×200 の図が 80px 前後まで縮む。線を太らせないと直線が消える。 */
+.linear-graph.lane .graph-grid { stroke-width: 1.4; }
+.linear-graph.lane .graph-axis { stroke-width: 3; }
+.linear-graph.lane .graph-line { stroke-width: 6; }
+.linear-graph.lane .graph-intersection-point { stroke-width: 2.5; }
+/* x・y の軸ラベルはこの縮尺だと読めないので出さない。 */
+.linear-graph.lane .graph-label { display: none; }
+
 /* --- スタート画面とリザルト --- */
 
 .rhythm-start {
@@ -1332,7 +1398,8 @@ body.solving-mode .challenge-panel {
   padding-top: 16px;
 }
 
-.rhythm-tier-buttons {
+.rhythm-tier-buttons,
+.rhythm-song-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -1431,6 +1498,17 @@ body.solving-mode .challenge-panel {
   .rhythm-lane-button {
     min-height: 54px;
     padding: 6px 4px;
+  }
+}
+
+@media (max-height: 620px) {
+  /* 横向きのスマホではグラフの高さが効いてくるので、キー名を消して1行ぶん稼ぐ。 */
+  .rhythm-lanes.graph .rhythm-lane-key {
+    display: none;
+  }
+
+  .rhythm-lanes.graph .rhythm-lane-button {
+    min-height: 0;
   }
 }
 
