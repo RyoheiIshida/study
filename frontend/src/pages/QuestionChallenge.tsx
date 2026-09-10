@@ -12,13 +12,9 @@ import LinearGraph from '../components/LinearGraph';
 import { normalizeReading } from '../utils/reading';
 import { pickSessionQuestions } from '../utils/shuffle';
 import { getDifficultyLabel } from '../utils/quizGroups';
+import { buildAnswerOptions, getAnswerValue } from '../utils/answerOptions';
 
 const QUESTION_SECONDS = 30;
-
-function getAnswerValue(option: string): string {
-  const label = option.match(/^([A-D]):\s*/)?.[1];
-  return label ?? option;
-}
 
 const initialState: GameState = {
   currentQuestionIndex: 0,
@@ -110,34 +106,10 @@ function QuestionChallenge() {
     return () => document.body.classList.remove('solving-mode');
   }, [isSolving]);
 
-  const answerOptions = useMemo(() => {
-    if (!currentQuestion || isTextInput) return [];
-    if (currentQuestion.options && currentQuestion.options.length >= 4) {
-      return currentQuestion.options;
-    }
-
-    const answerNumber = Number(currentQuestion.answer);
-    const base = new Set<string>([currentQuestion.answer]);
-    if (Number.isFinite(answerNumber)) {
-      let offset = 1;
-      while (base.size < 4) {
-        for (const candidate of [answerNumber - offset, answerNumber + offset]) {
-          if (base.size >= 4) break;
-          if (candidate >= 0) {
-            base.add(String(candidate));
-          }
-        }
-        offset += 1;
-      }
-    } else {
-      let counter = 1;
-      while (base.size < 4) {
-        base.add(`選択肢${counter}`);
-        counter += 1;
-      }
-    }
-    return Array.from(base).sort((a, b) => a.localeCompare(b));
-  }, [currentQuestion, isTextInput]);
+  const answerOptions = useMemo(
+    () => buildAnswerOptions(currentQuestion, isTextInput),
+    [currentQuestion, isTextInput],
+  );
 
   function submitAnswer(option: string, timedOut = false) {
     if (!quiz || !currentQuestion || state.finished || awaitingNext) return;

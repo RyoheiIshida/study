@@ -3,6 +3,8 @@ import { Link, Navigate, NavLink, Route, Routes, useLocation } from 'react-route
 import QuizList from './pages/QuizList';
 import DifficultySelect from './pages/DifficultySelect';
 import QuestionChallenge from './pages/QuestionChallenge';
+import RhythmChallenge from './pages/RhythmChallenge';
+import RhythmList from './pages/RhythmList';
 import Progress from './pages/Progress';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -60,6 +62,7 @@ function App() {
           {user && (
             <>
               <NavLink to="/">クイズ</NavLink>
+              <NavLink to="/rhythm">音ゲー</NavLink>
               <NavLink to="/progress">進捗</NavLink>
               <NavLink to="/analytics">分析</NavLink>
               <NavLink to="/profile">プロフィール</NavLink>
@@ -92,6 +95,8 @@ function App() {
           <Route path="/" element={<RequireAuth><QuizList /></RequireAuth>} />
           <Route path="/group/:groupId" element={<RequireAuth><DifficultySelect /></RequireAuth>} />
           <Route path="/challenge/:quizId" element={<RequireAuth><QuestionChallenge /></RequireAuth>} />
+          <Route path="/rhythm" element={<RequireAuth><RhythmList /></RequireAuth>} />
+          <Route path="/rhythm/:quizId" element={<RequireAuth><RhythmChallenge /></RequireAuth>} />
           <Route path="/progress" element={<RequireAuth><Progress /></RequireAuth>} />
           <Route path="/analytics" element={<RequireAuth><Analytics /></RequireAuth>} />
           <Route path="/profile" element={<RequireAuth><UserProfile /></RequireAuth>} />

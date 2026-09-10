@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { fetchQuizzes } from '../api/quiz';
 import { Quiz } from '../types';
 import { findGroupById } from '../utils/quizGroups';
+import { isRhythmEligible } from '../music/chart';
 
 function DifficultySelect() {
   const { groupId } = useParams();
@@ -61,6 +62,9 @@ function DifficultySelect() {
                 <p className="hint">問題数 {quiz.questions.length}問</p>
                 <div className="card-actions">
                   <Link to={`/challenge/${quiz.id}`} className="button">開始</Link>
+                  {isRhythmEligible(quiz) && (
+                    <Link to={`/rhythm/${quiz.id}`} className="button secondary">♪ 音ゲー</Link>
+                  )}
                 </div>
               </article>
             ))}
