@@ -1,9 +1,110 @@
-import { Grade, ProgressRecord, Quiz, Subject } from '../types';
+import { Grade, ProgressRecord, Question, Quiz, Subject } from '../types';
 import { TOKEN_KEY } from './auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 const STORAGE_KEY = 'study-app-quizzes';
 const PROGRESS_KEY = 'study-app-progress';
+
+/**
+ * 超かんたん（2択）をさらに細かく分けた段階。1つの段階では、決まった2本の直線だけを見比べる。
+ *
+ * 見る場所を1つに絞るため、傾きの段階は切片を 0、切片の段階は傾きを 1 にそろえてある。
+ * 2本の違いが傾き（または切片）だけになり、ほかの数字に気を取られずに練習できる。
+ * backend/src/data/store.ts にも同じ生成処理がある。問題を変えるときは両方そろえること。
+ */
+type LinearPairFocus = 'slope' | 'intercept';
+
+interface LinearPairLevel {
+  key: string;
+  focus: LinearPairFocus;
+  values: [number, number];
+}
+
+const linearPairLevels: LinearPairLevel[] = [
+  { key: 'slope-1-half', focus: 'slope', values: [1, 0.5] },
+  { key: 'slope-1-2', focus: 'slope', values: [1, 2] },
+  { key: 'slope-1-m1', focus: 'slope', values: [1, -1] },
+  { key: 'slope-2-m2', focus: 'slope', values: [2, -2] },
+  { key: 'intercept-1-2', focus: 'intercept', values: [1, 2] },
+  { key: 'intercept-1-3', focus: 'intercept', values: [1, 3] },
+  { key: 'intercept-2-3', focus: 'intercept', values: [2, 3] },
+  { key: 'intercept-1-m1', focus: 'intercept', values: [1, -1] },
+  { key: 'intercept-2-m2', focus: 'intercept', values: [2, -2] },
+  { key: 'intercept-3-m3', focus: 'intercept', values: [3, -3] },
+];
+
+/** value × d が整数になる最小の d。傾き 1/2 なら 2（x が 2 増えると y が 1 増える）。 */
+function denominatorOf(value: number): number {
+  return [1, 2, 3, 4, 5, 6].find((item) => Number.isInteger(value * item)) ?? 1;
+}
+
+/** 0.5 → '1/2' のように、問題文と同じ分数の書き方にする。 */
+function formatNumber(value: number): string {
+  const denominator = denominatorOf(value);
+  if (denominator === 1) return String(value);
+  return `${value < 0 ? '-' : ''}${Math.abs(value * denominator)}/${denominator}`;
+}
+
+function formatLinear(slope: number, intercept: number): string {
+  const coefficient = slope === 1 ? '' : slope === -1 ? '-' : formatNumber(slope);
+  const constant = intercept === 0 ? '' : intercept > 0 ? ` + ${intercept}` : ` - ${-intercept}`;
+  return `y = ${coefficient}x${constant}`;
+}
+
+function pairLine(focus: LinearPairFocus, value: number) {
+  return focus === 'slope' ? { slope: value, intercept: 0 } : { slope: 1, intercept: value };
+}
+
+function pairExplanation(focus: LinearPairFocus, target: number, other: number): string {
+  const { slope, intercept } = pairLine(focus, target);
+  const equation = formatLinear(slope, intercept);
+  if (focus === 'intercept') {
+    return `${equation} の切片は ${target} なので、y 軸と ${target} の目盛りで交わります。もう一方の直線は ${other} で交わります。`;
+  }
+  const run = denominatorOf(target);
+  const rise = target * run;
+  const direction = target > 0 ? '右上がり' : '右下がり';
+  const comparison =
+    Math.sign(target) === Math.sign(other)
+      ? `傾き ${formatNumber(other)} の直線より${Math.abs(target) > Math.abs(other) ? '急な' : 'ゆるやかな'}${direction}です。`
+      : `${direction}の直線です。`;
+  return `${equation} は傾きが ${formatNumber(target)} なので、x が ${run} 増えると y は ${Math.abs(rise)} ${rise > 0 ? '増えます' : '減ります'}。${comparison}`;
+}
+
+function buildLinearPairQuiz({ key, focus, values }: LinearPairLevel): Quiz {
+  const name = focus === 'slope' ? '傾き' : '切片';
+  const [first, second] = values.map(formatNumber);
+  const questions: Question[] = [];
+  for (const target of values) {
+    const other = target === values[0] ? values[1] : values[0];
+    const { slope, intercept } = pairLine(focus, target);
+    // 同じ式を、正解が A の問題と B の問題で1回ずつ出す。答えの位置で覚えてしまわないように。
+    for (const answer of ['A', 'B']) {
+      const [a, b] = answer === 'A' ? [target, other] : [other, target];
+      questions.push({
+        id: `linear-pair-${key}-${questions.length + 1}`,
+        text: `直線 ${formatLinear(slope, intercept)} のグラフとして正しいものを選びましょう。`,
+        answer,
+        graphOptions: [
+          { id: 'A', ...pairLine(focus, a) },
+          { id: 'B', ...pairLine(focus, b) },
+        ],
+        options: [`A: ${name}が ${formatNumber(a)} の直線`, `B: ${name}が ${formatNumber(b)} の直線`],
+        explanation: pairExplanation(focus, target, other),
+      });
+    }
+  }
+  return {
+    id: `linear-graph-pair-${key}`,
+    title: `一次関数のグラフ（${name} ${first} と ${second}）`,
+    subject: 'Math',
+    grade: 'Middle School',
+    description: `2択です。${name}が ${first} と ${second} の直線を見分けましょう。`,
+    questions,
+  };
+}
+
+const linearPairQuizzes = linearPairLevels.map(buildLinearPairQuiz);
 
 export const initialQuizzes: Quiz[] = [
   {
@@ -537,6 +638,7 @@ export const initialQuizzes: Quiz[] = [
       },
     ],
   },
+  ...linearPairQuizzes,
 ];
 
 function apiPath(path: string) {
