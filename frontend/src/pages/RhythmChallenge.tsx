@@ -23,7 +23,6 @@ import {
   isRhythmEligible,
   questionIndexAtBeat,
   songForQuiz,
-  songForTier,
 } from '../music/chart';
 import { songs } from '../music/songs';
 import {
@@ -154,10 +153,7 @@ function RhythmChallenge() {
     return () => document.body.classList.remove('solving-mode');
   }, [phase]);
 
-  const song = useMemo(
-    () => (quiz ? songForQuiz(quiz, tier, songId) : songForTier(tier)),
-    [quiz, tier, songId],
-  );
+  const song = useMemo(() => songForQuiz(songId), [songId]);
   const eligible = quiz ? isRhythmEligible(quiz) : true;
   const chart = useMemo(
     () => (quiz && eligible ? buildChart(quiz.questions.length, song, tier) : null),
@@ -625,27 +621,30 @@ function RhythmChallenge() {
         <div className="rhythm-song-card">
           <p className="eyebrow">曲</p>
           <h3>♪ {song.title}</h3>
-          <p className="hint">{song.mood} ・ BPM {song.bpm} ・ 全{quiz.questions.length}問</p>
+          <p className="hint">{song.mood} ・ BPM {song.bpm} ・ 全{quiz.questions.length}問 ・ 1問 約{secondsPerQuestion}秒</p>
         </div>
 
-        <div className="rhythm-setting-row">
-          <p className="eyebrow">曲をえらぶ</p>
-          <div className="rhythm-song-buttons" role="group" aria-label="曲">
-            {songs.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={option.id === song.id ? 'button' : 'button secondary'}
-                onClick={() => setSongId(option.id)}
-              >
-                {option.title}
-              </button>
-            ))}
+        {/* 曲は非表示ぶんを除いて1曲だけなので、選ぶボタンが1つになるときは行ごと出さない。 */}
+        {songs.length > 1 && (
+          <div className="rhythm-setting-row">
+            <p className="eyebrow">曲をえらぶ</p>
+            <div className="rhythm-song-buttons" role="group" aria-label="曲">
+              {songs.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={option.id === song.id ? 'button' : 'button secondary'}
+                  onClick={() => setSongId(option.id)}
+                >
+                  {option.title}
+                </button>
+              ))}
+            </div>
+            <p className="hint">
+              速い曲を選んでも、1問あたりの時間は変わりません（今: 約{secondsPerQuestion}秒）。
+            </p>
           </div>
-          <p className="hint">
-            速い曲を選んでも、1問あたりの時間は変わりません（今: 約{secondsPerQuestion}秒）。
-          </p>
-        </div>
+        )}
 
         <div className="rhythm-howto">
           <p className="eyebrow">あそびかた</p>

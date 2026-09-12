@@ -1,12 +1,15 @@
 import { Song } from '../types';
-import { sunriseSteps } from './sunriseSteps';
-import { numberMarch } from './numberMarch';
-import { kanjiNight } from './kanjiNight';
-import { slopeLine } from './slopeLine';
 import { neonRush } from './neonRush';
 
-export const songs: Song[] = [sunriseSteps, numberMarch, kanjiNight, slopeLine, neonRush];
+/**
+ * 選べる曲。
+ *
+ * 初期の4曲（サンライズステップス／ナンバーマーチ／漢字ナイト／スロープライン）は非表示にして、
+ * ネオンラッシュ1曲だけにしている。ファイルは残してあるので、戻したくなったら
+ * import して下の配列に足すだけでよい。
+ */
+export const songs: Song[] = [neonRush];
 
 export const songById = new Map(songs.map((song) => [song.id, song]));
 
-export { sunriseSteps, numberMarch, kanjiNight, slopeLine, neonRush };
+export { neonRush };

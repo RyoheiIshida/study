@@ -2,7 +2,7 @@ import { Quiz } from '../types';
 import { getDifficultyLabel } from '../utils/quizGroups';
 import { buildLaneChoices } from '../utils/answerOptions';
 import { Chart, ChartNote, LANES, Lane, Song } from './types';
-import { kanjiNight, numberMarch, slopeLine, songById, sunriseSteps } from './songs';
+import { neonRush, songById } from './songs';
 
 /**
  * 問題データから譜面を自動生成する。
@@ -46,17 +46,6 @@ const COUNT_IN_BEATS = 8;
 /** 最後のノーツのあと、曲を止めるまでの余韻。 */
 const TAIL_BEATS = 4;
 
-export function songForTier(tier: DifficultyTier): Song {
-  switch (tier) {
-    case 'easy':
-      return sunriseSteps;
-    case 'hard':
-      return kanjiNight;
-    default:
-      return numberMarch;
-  }
-}
-
 /** グラフを選ぶ問題（一次関数）かどうか。レーンの見た目も曲もここで分岐する。 */
 export function isGraphQuiz(quiz: Quiz): boolean {
   return quiz.questions.some((question) => question.graphOptions && question.graphOptions.length > 0);
@@ -65,15 +54,12 @@ export function isGraphQuiz(quiz: Quiz): boolean {
 /**
  * そのクイズで鳴らす曲。プレイヤーがスタート画面で選んでいれば、それを最優先する。
  *
- * 既定は一次関数だけ「スロープライン」にする。旋律が一次関数の直線そのもの
- * （1拍ごとに音階が一定量ずつ動く）でできていて、傾きの大小が耳でも分かる曲だから。
- * ただしこの対応づけは既定値どまりで、選び直しは止めない。
+ * 選べる曲はネオンラッシュだけなので、既定もネオンラッシュ。以前の
+ * 「一次関数はスロープライン」といった曲の振り分けは、その曲を非表示にしたぶん無くなっている。
  */
-export function songForQuiz(quiz: Quiz, tier: DifficultyTier, songId?: string | null): Song {
+export function songForQuiz(songId?: string | null): Song {
   const chosen = songId ? songById.get(songId) : undefined;
-  if (chosen) return chosen;
-  if (isGraphQuiz(quiz)) return slopeLine;
-  return songForTier(tier);
+  return chosen ?? neonRush;
 }
 
 /**
