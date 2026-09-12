@@ -7,6 +7,7 @@ export function shuffle<T>(items: T[]): T[] {
   return result;
 }
 
+/** 1回のプレイで出す問題数の上限。ロングの段階（utils/quizGroups.ts の isLong）はこれを超えて全問を出す。 */
 export const MAX_SESSION_QUESTIONS = 15;
 
 export function pickSessionQuestions<T>(items: T[], max: number = MAX_SESSION_QUESTIONS): T[] {
