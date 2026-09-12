@@ -5,6 +5,9 @@ import { Quiz, Subject } from '../types';
 import { subjectLabel, gradeLabel } from '../utils/labels';
 import { findGroupByQuizId } from '../utils/quizGroups';
 import { isRhythmEligible } from '../music/chart';
+import { playPath } from '../utils/playMode';
+import { usePlayMode } from '../hooks/usePlayMode';
+import PlayModeToggle from '../components/PlayModeToggle';
 import DailyQuestPanel from '../components/DailyQuestPanel';
 
 const subjectOptions: Subject[] = ['Math'];
@@ -16,9 +19,10 @@ interface QuizListEntry {
   title: string;
   description: string;
   questionCount: number;
-  linkTo: string;
-  /** 音ゲーモードで遊べる場合の遷移先クイズID。難易度グループは個別ページ側で案内する。 */
-  rhythmQuizId: string | null;
+  /** 難易度グループなら、その id。段階の選択は個別ページに任せる。 */
+  groupId: string | null;
+  /** 単体クイズなら、ここから直接始められるクイズ本体。 */
+  quiz: Quiz | null;
 }
 
 function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
@@ -35,8 +39,8 @@ function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
         title: quiz.title,
         description: quiz.description,
         questionCount: quiz.questions.length,
-        linkTo: `/challenge/${quiz.id}`,
-        rhythmQuizId: isRhythmEligible(quiz) ? quiz.id : null,
+        groupId: null,
+        quiz,
       });
       continue;
     }
@@ -52,8 +56,8 @@ function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
       title: group.title,
       description: group.description,
       questionCount: memberQuizzes.reduce((total, item) => total + item.questions.length, 0),
-      linkTo: `/group/${group.id}`,
-      rhythmQuizId: null,
+      groupId: group.id,
+      quiz: null,
     });
   }
 
@@ -64,6 +68,7 @@ function QuizList() {
   const [selectedSubject, setSelectedSubject] = useState<Subject>('Math');
   const { quizzes, isLoading } = useQuizStore(selectedSubject);
   const entries = useMemo(() => buildQuizListEntries(quizzes), [quizzes]);
+  const [playMode, setPlayMode] = usePlayMode();
 
   return (
     <section className="page-stack">
@@ -93,29 +98,36 @@ function QuizList() {
           </div>
           <Link to="/progress" className="text-link">進捗ログ</Link>
         </div>
+        <PlayModeToggle mode={playMode} onChange={setPlayMode} />
         {isLoading ? (
           <p>クイズを読み込み中...</p>
         ) : entries.length === 0 ? (
           <p>この条件に一致するクイズはまだありません。</p>
         ) : (
           <div className="grid-list">
-            {entries.map((entry) => (
-              <article key={entry.key} className="card quiz-card">
-                <div className="card-header">
-                  <span className="tag">{subjectLabel(entry.subject)}</span>
-                  <span className="tag muted">{gradeLabel(entry.grade)}</span>
-                </div>
-                <h3>{entry.title}</h3>
-                <p>{entry.description}</p>
-                <p className="hint">問題数 {entry.questionCount}問</p>
-                <div className="card-actions">
-                  <Link to={entry.linkTo} className="button">開始</Link>
-                  {entry.rhythmQuizId && (
-                    <Link to={`/rhythm/${entry.rhythmQuizId}`} className="button secondary">♪ 音ゲー</Link>
-                  )}
-                </div>
-              </article>
-            ))}
+            {entries.map((entry) => {
+              const onlyNormal = playMode === 'rhythm' && entry.quiz !== null && !isRhythmEligible(entry.quiz);
+              return (
+                <article key={entry.key} className="card quiz-card">
+                  <div className="card-header">
+                    <span className="tag">{subjectLabel(entry.subject)}</span>
+                    <span className="tag muted">{gradeLabel(entry.grade)}</span>
+                  </div>
+                  <h3>{entry.title}</h3>
+                  <p>{entry.description}</p>
+                  <p className="hint">問題数 {entry.questionCount}問</p>
+                  {onlyNormal && <p className="hint">このクイズは音ゲーモードに対応していないため、通常モードで始まります。</p>}
+                  <div className="card-actions">
+                    <Link
+                      to={entry.groupId ? `/group/${entry.groupId}` : playPath(entry.quiz!, playMode)}
+                      className="button"
+                    >
+                      開始
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>
