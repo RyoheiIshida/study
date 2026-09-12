@@ -624,7 +624,7 @@ function RhythmChallenge() {
           <p className="hint">{song.mood} ・ BPM {song.bpm} ・ 全{quiz.questions.length}問 ・ 1問 約{secondsPerQuestion}秒</p>
         </div>
 
-        {/* 曲は非表示ぶんを除いて1曲だけなので、選ぶボタンが1つになるときは行ごと出さない。 */}
+        {/* 選べる曲が1つしかないときは、ボタンが1つだけ並んでも意味がないので行ごと出さない。 */}
         {songs.length > 1 && (
           <div className="rhythm-setting-row">
             <p className="eyebrow">曲をえらぶ</p>
@@ -641,7 +641,7 @@ function RhythmChallenge() {
               ))}
             </div>
             <p className="hint">
-              速い曲を選んでも、1問あたりの時間は変わりません（今: 約{secondsPerQuestion}秒）。
+              速い曲を選んでも、1問あたりの時間は大きく変わりません（今: 約{secondsPerQuestion}秒）。
             </p>
           </div>
         )}
