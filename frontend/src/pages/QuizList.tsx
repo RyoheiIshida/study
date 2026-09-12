@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useQuizStore } from '../hooks/useQuizStore';
 import { Quiz, Subject } from '../types';
 import { subjectLabel, gradeLabel } from '../utils/labels';
@@ -9,8 +9,6 @@ import { playPath } from '../utils/playMode';
 import { usePlayMode } from '../hooks/usePlayMode';
 import PlayModeToggle from '../components/PlayModeToggle';
 import DailyQuestPanel from '../components/DailyQuestPanel';
-
-const subjectOptions: Subject[] = ['Math'];
 
 interface QuizListEntry {
   key: string;
@@ -65,7 +63,7 @@ function buildQuizListEntries(quizzes: Quiz[]): QuizListEntry[] {
 }
 
 function QuizList() {
-  const [selectedSubject, setSelectedSubject] = useState<Subject>('Math');
+  const selectedSubject: Subject = 'Math';
   const { quizzes, isLoading } = useQuizStore(selectedSubject);
   const entries = useMemo(() => buildQuizListEntries(quizzes), [quizzes]);
   const [playMode, setPlayMode] = usePlayMode();
@@ -73,23 +71,6 @@ function QuizList() {
   return (
     <section className="page-stack">
       <DailyQuestPanel />
-      <div className="panel filter-panel">
-        <div>
-          <p className="eyebrow">クイズ一覧</p>
-          <h2>取り組む問題セットを選ぶ</h2>
-        </div>
-        <div className="filters">
-          <label>
-            科目
-            <select value={selectedSubject} onChange={(event) => setSelectedSubject(event.target.value as Subject)}>
-              {subjectOptions.map((subject) => (
-                <option key={subject} value={subject}>{subjectLabel(subject)}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </div>
-
       <div className="panel">
         <div className="section-heading">
           <div>
