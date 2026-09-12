@@ -7,7 +7,7 @@ import { fetchTrophySummary } from '../api/trophies';
 import { saveAnswerSpeedRecords } from '../api/answerSpeed';
 import { AnswerSpeedRecord, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import { pickSessionQuestions } from '../utils/shuffle';
-import { getDifficultyLabel } from '../utils/quizGroups';
+import { getDifficultyLabel, getSessionQuestionLimit } from '../utils/quizGroups';
 import { LaneChoice, buildLaneChoices } from '../utils/answerOptions';
 import { normalizeReading } from '../utils/reading';
 import NoteHighway, { LANE_COLORS } from '../components/NoteHighway';
@@ -132,7 +132,7 @@ function RhythmChallenge() {
         navigate('/');
         return;
       }
-      setQuiz({ ...result, questions: pickSessionQuestions(result.questions) });
+      setQuiz({ ...result, questions: pickSessionQuestions(result.questions, getSessionQuestionLimit(result.id)) });
       setTier(defaultTierForQuiz(result));
       // クイズが変われば既定の曲も変わる。前のクイズで選んだ曲は持ち越さない。
       setSongId(null);
@@ -407,7 +407,7 @@ function RhythmChallenge() {
         </p>
         <div className="card-actions">
           <Link to={`/challenge/${quiz.id}`} className="button">通常モードで開始</Link>
-          <Link to="/rhythm" className="button secondary">音ゲー対応クイズ一覧</Link>
+          <Link to="/" className="button secondary">クイズ一覧に戻る</Link>
         </div>
       </section>
     );

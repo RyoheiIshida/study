@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { ProgressRecord, Quiz } from '../types';
-import { QuizGroupMember, findGroupById } from '../utils/quizGroups';
+import { QuizGroupMember, findGroupById, getSessionQuestionLimit } from '../utils/quizGroups';
 import { isRhythmEligible } from '../music/chart';
+import { playPath } from '../utils/playMode';
+import { usePlayMode } from '../hooks/usePlayMode';
+import PlayModeToggle from '../components/PlayModeToggle';
 
 interface LevelEntry {
   member: QuizGroupMember;
@@ -25,6 +28,7 @@ function DifficultySelect() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [progress, setProgress] = useState<ProgressRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [playMode, setPlayMode] = usePlayMode();
 
   useEffect(() => {
     Promise.all([fetchQuizzes(), fetchProgress()]).then(([quizData, progressData]) => {
@@ -97,6 +101,7 @@ function DifficultySelect() {
 
         <div id="track-panel" role="tabpanel" aria-labelledby={`track-tab-${activeTrack.id}`}>
           <p className="hint track-description">{activeTrack.description}</p>
+          <PlayModeToggle mode={playMode} onChange={setPlayMode} />
           {isLoading ? (
             <p>読み込み中...</p>
           ) : trackLevels.length === 0 ? (
@@ -116,16 +121,13 @@ function DifficultySelect() {
                       <span className="level-name">{member.name}</span>
                       <span className="level-meta">
                         {choices && <span>{choices}択</span>}
-                        <span>{quiz.questions.length}問</span>
-                        {record && <span>前回 {record.correct}/{record.total}</span>}
+                        <span>{Math.min(quiz.questions.length, getSessionQuestionLimit(quiz.id))}問</span>                        {record && <span>前回 {record.correct}/{record.total}</span>}
                         {isNext && <span className="tag">次はここ</span>}
+                        {playMode === 'rhythm' && !isRhythmEligible(quiz) && <span>通常モードのみ</span>}
                       </span>
                     </div>
                     <div className="level-actions">
-                      <Link to={`/challenge/${quiz.id}`} className="button">開始</Link>
-                      {isRhythmEligible(quiz) && (
-                        <Link to={`/rhythm/${quiz.id}`} className="button secondary" aria-label={`${member.name} を音ゲーで遊ぶ`}>♪</Link>
-                      )}
+                      <Link to={playPath(quiz, playMode)} className="button">開始</Link>
                     </div>
                   </li>
                 );

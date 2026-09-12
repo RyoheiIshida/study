@@ -11,7 +11,7 @@ import TimerDisplay from '../components/TimerDisplay';
 import LinearGraph from '../components/LinearGraph';
 import { normalizeReading } from '../utils/reading';
 import { pickSessionQuestions } from '../utils/shuffle';
-import { getDifficultyLabel } from '../utils/quizGroups';
+import { getDifficultyLabel, getSessionQuestionLimit } from '../utils/quizGroups';
 import { buildAnswerOptions, getAnswerValue } from '../utils/answerOptions';
 
 const QUESTION_SECONDS = 30;
@@ -61,7 +61,7 @@ function QuestionChallenge() {
       if (!result) {
         navigate('/');
       } else {
-        setQuiz({ ...result, questions: pickSessionQuestions(result.questions) });
+        setQuiz({ ...result, questions: pickSessionQuestions(result.questions, getSessionQuestionLimit(result.id)) });
       }
     });
     fetchXpSummary().then(setXpBefore).catch(() => setXpBefore(null));
