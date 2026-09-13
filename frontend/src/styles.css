@@ -1902,3 +1902,59 @@ body.solving-mode .challenge-panel {
   .child-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .child-card > .button { width: 100%; }
 }
+
+/* シークレットトロフィー: 条件をかくしたトロフィー。未発見のあいだはヒントだけ見せる */
+.secret-section { margin-top: var(--space-6); }
+.secret-section h3 { margin-bottom: var(--space-1); }
+
+.secret-card {
+  background: #eef4f1;
+  border-color: #b9d3c9;
+}
+
+.secret-card.locked {
+  background: #f1efe8;
+  border: 1px dashed var(--line);
+}
+
+.secret-card.locked .trophy-icon {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.secret-description { color: var(--muted); font-size: 0.9rem; }
+
+.secret-unlock {
+  animation: secret-unlock-pop 480ms ease-out;
+  background: #eef4f1;
+  border: 1px solid #b9d3c9;
+  border-radius: var(--radius);
+  margin-top: 12px;
+  padding: 14px;
+  text-align: left;
+}
+
+.secret-unlock-item {
+  align-items: center;
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.secret-unlock-item p { color: var(--muted); margin: var(--space-1) 0 0; }
+.secret-unlock-icon { font-size: 2.2rem; line-height: 1; }
+
+@keyframes secret-unlock-pop {
+  0% { opacity: 0; transform: scale(0.9); }
+  60% { opacity: 1; transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* 8枚ほど並ぶので、スマホでも2列に収まるよう全問正解トロフィーより小さめのカードにする */
+.secret-grid {
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+}
+
+.secret-grid .trophy-card { gap: var(--space-1); padding: var(--space-3) var(--space-2); }
+.secret-grid .trophy-icon { font-size: 1.7rem; }

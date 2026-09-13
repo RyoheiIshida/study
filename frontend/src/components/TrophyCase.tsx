@@ -7,6 +7,8 @@ interface TrophyCaseProps {
 
 function TrophyCase({ summary }: TrophyCaseProps) {
   const trophies = summary?.trophies ?? [];
+  const secrets = summary?.secrets ?? [];
+  const unlockedSecrets = secrets.filter((secret) => secret.unlocked).length;
 
   return (
     <div className="panel trophy-panel">
@@ -24,6 +26,33 @@ function TrophyCase({ summary }: TrophyCaseProps) {
               <span className="trophy-date">{new Date(trophy.achievedAt).toLocaleDateString()}</span>
             </article>
           ))}
+        </div>
+      )}
+
+      {secrets.length > 0 && (
+        <div className="secret-section">
+          <h3>シークレットトロフィー（{unlockedSecrets} / {secrets.length}）</h3>
+          <p className="hint">手に入れる条件はひみつ。ヒントをたよりに探してみよう。</p>
+          <div className="trophy-grid secret-grid">
+            {secrets.map((secret) =>
+              secret.unlocked ? (
+                <article className="trophy-card secret-card" key={secret.id}>
+                  <span className="trophy-icon" aria-hidden="true">{secret.icon}</span>
+                  <strong>{secret.name}</strong>
+                  <span className="secret-description">{secret.description}</span>
+                  {secret.achievedAt && (
+                    <span className="trophy-date">{new Date(secret.achievedAt).toLocaleDateString()}</span>
+                  )}
+                </article>
+              ) : (
+                <article className="trophy-card secret-card locked" key={secret.id}>
+                  <span className="trophy-icon" aria-hidden="true">？</span>
+                  <strong aria-label="未発見">？？？</strong>
+                  <span className="secret-description">{secret.hint}</span>
+                </article>
+              ),
+            )}
+          </div>
         </div>
       )}
     </div>
