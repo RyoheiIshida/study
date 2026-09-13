@@ -57,6 +57,20 @@ export interface ProgressRecord {
   lastPlayed: string;
 }
 
+export type LuckyTier = 'lucky' | 'super' | 'miracle';
+
+/** クイズ終了時にサーバーで引いたラッキーボーナスの結果。tier が null ならはずれ。 */
+export interface LuckyBonus {
+  tier: LuckyTier | null;
+  multiplier: number;
+  bonusXp: number;
+}
+
+/** 保存 API の応答。オフラインで端末に保存したときは抽選していないので luckyBonus がない。 */
+export interface SavedProgress extends ProgressRecord {
+  luckyBonus?: LuckyBonus;
+}
+
 export interface DailyQuest {
   id: string;
   title: string;

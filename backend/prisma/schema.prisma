@@ -127,6 +127,9 @@ model QuizAttempt {
   correct  Int
   streak   Int
   durationMs Int?
+  /// Extra XP won in the random lucky-bonus draw at the end of the attempt.
+  /// Stored rather than recomputed so past results never change.
+  luckyBonusXp Int @default(0)
   playedAt DateTime @default(now())
 
   @@index([username, playedAt])
