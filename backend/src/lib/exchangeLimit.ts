@@ -10,14 +10,18 @@ export interface ExchangeTier {
 /**
  * Monthly exchange allowance per level. A child cannot exchange at all below
  * the first tier, and each tier raises the cash they may request in a month.
+ * The top tier is kept at 1,000 yen so the app stays a small bonus on top of
+ * a middle schooler's regular allowance rather than replacing it.
  */
 export const MONTHLY_LIMIT_TIERS: ExchangeTier[] = [
-  { level: 3, monthlyLimit: 300 },
-  { level: 5, monthlyLimit: 500 },
-  { level: 8, monthlyLimit: 1000 },
-  { level: 12, monthlyLimit: 2000 },
-  { level: 16, monthlyLimit: 3000 },
+  { level: 5, monthlyLimit: 300 },
+  { level: 10, monthlyLimit: 500 },
+  { level: 15, monthlyLimit: 700 },
+  { level: 20, monthlyLimit: 1000 },
 ];
+
+/** Points can only be exchanged in multiples of this, so rounding a tiny request up never pays extra. */
+export const EXCHANGE_POINT_UNIT = 100;
 
 export const EXCHANGE_UNLOCK_LEVEL = MONTHLY_LIMIT_TIERS[0].level;
 

@@ -69,8 +69,9 @@ function PurchaseRequests() {
     event.preventDefault();
     setActionError('');
     const parsed = Number(pointsCost);
-    if (!Number.isInteger(parsed) || parsed <= 0) {
-      setActionError('ポイント数は1以上の整数で入力してください。');
+    const unit = rateInfo?.pointUnit ?? 1;
+    if (!Number.isInteger(parsed) || parsed <= 0 || parsed % unit !== 0) {
+      setActionError(`ポイント数は${unit}pt単位で入力してください。`);
       return;
     }
     setIsSubmitting(true);
@@ -157,10 +158,11 @@ function PurchaseRequests() {
                 {limit.nextTier && `(レベル${limit.nextTier.level}になると月${limit.nextTier.monthlyLimit}円まで)`}
               </p>
               <label>
-                交換するポイント数
+                交換するポイント数({rateInfo.pointUnit}pt単位)
                 <input
                   type="number"
-                  min={1}
+                  min={rateInfo.pointUnit}
+                  step={rateInfo.pointUnit}
                   value={pointsCost}
                   onChange={(e) => setPointsCost(e.target.value)}
                   required

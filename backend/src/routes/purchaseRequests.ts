@@ -5,7 +5,7 @@ import { prisma } from '../db.js';
 import { Role, PurchaseRequestStatus } from '../generated/client.js';
 import { computeAvailablePoints } from '../lib/points.js';
 import { computeExchangeRate, computeRecentAccuracy } from '../lib/exchange.js';
-import { computeExchangeLimit } from '../lib/exchangeLimit.js';
+import { EXCHANGE_POINT_UNIT, computeExchangeLimit } from '../lib/exchangeLimit.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -16,13 +16,16 @@ router.get('/rate', requireRole(Role.CHILD), asyncHandler(async (req, res) => {
   const rate = computeExchangeRate(recentAccuracy);
   const availablePoints = await computeAvailablePoints(username);
   const limit = await computeExchangeLimit(username);
-  res.json({ rate, recentAccuracy, availablePoints, limit });
+  res.json({ rate, recentAccuracy, availablePoints, pointUnit: EXCHANGE_POINT_UNIT, limit });
 }));
 
 router.post('/', requireRole(Role.CHILD), asyncHandler(async (req, res) => {
   const { pointsCost, memo } = req.body as { pointsCost?: number; memo?: string };
   if (!pointsCost || pointsCost <= 0 || !Number.isInteger(pointsCost)) {
     return res.status(400).json({ message: 'pointsCost must be a positive integer.' });
+  }
+  if (pointsCost % EXCHANGE_POINT_UNIT !== 0) {
+    return res.status(400).json({ message: `ポイントは${EXCHANGE_POINT_UNIT}pt単位で交換できます。` });
   }
 
   const child = await prisma.user.findUnique({ where: { username: req.user!.username } });

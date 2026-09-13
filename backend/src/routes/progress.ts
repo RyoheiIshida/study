@@ -32,6 +32,27 @@ router.post('/', asyncHandler(async (req, res) => {
     return;
   }
 
+  // 正解数はポイント（おこづかい）と XP に直結するので、送られてきた値をそのまま信じずクイズの問題数と照らし合わせる。
+  const quiz = await prisma.quiz.findUnique({
+    where: { id: record.quizId },
+    select: { _count: { select: { questions: true } } },
+  });
+  const streak = record.streak ?? 0;
+  const completed = record.completed ?? 0;
+  const isCount = (value: number) => Number.isInteger(value) && value >= 0;
+  if (
+    !quiz ||
+    ![record.total, record.correct, streak, completed].every(isCount) ||
+    record.total < 1 ||
+    record.total > quiz._count.questions ||
+    record.correct > record.total ||
+    completed > record.total ||
+    streak > record.correct
+  ) {
+    res.status(400).json({ message: 'Invalid progress payload' });
+    return;
+  }
+
   // Sessions saved by an older client, or before duration tracking existed,
   // carry no duration rather than a misleading zero.
   const durationMs =
@@ -42,11 +63,12 @@ router.post('/', asyncHandler(async (req, res) => {
   const payload = {
     username: req.user!.username,
     quizId: record.quizId,
-    completed: record.completed ?? 0,
+    completed,
     total: record.total,
     correct: record.correct,
-    streak: record.streak ?? 0,
-    lastPlayed: record.lastPlayed ? new Date(record.lastPlayed) : new Date(),
+    streak,
+    // 1日のポイント上限は日付で数えるので、端末から送られた日時ではなくサーバーの時刻で記録する。
+    lastPlayed: new Date(),
   };
 
   // 抽選はサーバーで行い、結果を記録に残す。クライアントから当たりを指定することはできない。

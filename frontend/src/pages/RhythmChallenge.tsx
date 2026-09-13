@@ -14,6 +14,7 @@ import NoteHighway, { LANE_COLORS } from '../components/NoteHighway';
 import LinearGraph from '../components/LinearGraph';
 import SecretTrophyUnlock from '../components/SecretTrophyUnlock';
 import PerfectTrophyResult from '../components/PerfectTrophyResult';
+import PointsResult from '../components/PointsResult';
 import LuckyBonusReveal from '../components/LuckyBonusReveal';
 import { AudioEngine } from '../music/engine';
 import {
@@ -549,15 +550,7 @@ function RhythmChallenge() {
                   )}
                 </div>
               )}
-              {pointsAfter && (
-                <div className="points-result">
-                  <p className="eyebrow">ポイント</p>
-                  <p>
-                    獲得ポイント: +{Math.max(pointsAfter.totalPoints - (pointsBefore?.totalPoints ?? pointsAfter.totalPoints), 0)}pt
-                    {' '}・ 累計{pointsAfter.totalPoints}pt
-                  </p>
-                </div>
-              )}
+              {pointsAfter && <PointsResult before={pointsBefore} after={pointsAfter} grade={quiz.grade} />}
               <SecretTrophyUnlock before={trophiesBefore} after={trophiesAfter} />
               {correctCount === quiz.questions.length && (
                 <PerfectTrophyResult quizId={quiz.id} before={trophiesBefore} after={trophiesAfter} />
