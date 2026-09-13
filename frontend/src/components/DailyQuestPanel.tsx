@@ -10,7 +10,7 @@ function DailyQuestPanel() {
       {isLoading ? (
         <p>クエストを読み込み中...</p>
       ) : quests.length === 0 ? (
-        <p>クエストの読み込みに失敗しました。しばらくしてから再度お試しください。</p>
+        <p className="feedback-error" role="alert">クエストの読み込みに失敗しました。しばらくしてから再度お試しください。</p>
       ) : (
         <div className="quest-grid">
           {quests.map((quest) => (

@@ -4,14 +4,50 @@
   background: #f6f3ea;
   color: #1d2528;
   --ink: #1d2528;
-  --muted: #66736d;
+  /* 色。文字に使う色は背景 #f6f3ea / #fffaf0 の上で WCAG AA（4.5:1）を満たすこと。 */
+  --muted: #5a6761;
   --paper: #fffdf7;
   --line: #d9d3c2;
   --accent: #0f766e;
   --accent-dark: #115e59;
   --gold: #d99a2b;
+  /* --rose は塗り（バーや大きな×印）用。小さい文字には --danger-text を使う。 */
   --rose: #c65f5f;
+  --danger-text: #a94444;
+  --danger-bg: #fdecec;
+  --danger-line: #f0bcbc;
+  --focus-ring: #d99a2b;
   --shadow: 0 18px 42px rgba(54, 48, 34, 0.11);
+
+  /* 余白 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  /* 角丸 */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* 文字サイズ */
+  --text-xs: 0.75rem;
+  --text-sm: 0.85rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.7rem;
+
+  /* 重なり順 */
+  --z-sticky: 2;
+  --z-popover: 3;
+  --z-overlay: 20;
+  --z-nav: 30;
+
+  /* スマホの下部タブバーの高さ（安全域を除く） */
+  --bottom-nav-height: 64px;
 }
 
 * { box-sizing: border-box; }
@@ -32,10 +68,21 @@ body {
 
 a { color: var(--accent-dark); font-weight: 700; }
 
+/* キーボード操作時だけ、今どこにいるかを太い枠で示す。タップでは出ない。 */
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 .app-shell {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 16px 0 36px;
+  /* viewport-fit=cover にしているので、ノッチやホームインジケータの下に中身が潜らないよう安全域を足す。 */
+  padding:
+    var(--space-4)
+    env(safe-area-inset-right, 0px)
+    calc(36px + env(safe-area-inset-bottom, 0px))
+    env(safe-area-inset-left, 0px);
 }
 
 .top-bar {
@@ -68,7 +115,7 @@ a { color: var(--accent-dark); font-weight: 700; }
 }
 
 .nav-links a {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--muted);
   padding: 9px 12px;
   text-decoration: none;
@@ -79,10 +126,21 @@ a { color: var(--accent-dark); font-weight: 700; }
   color: var(--accent-dark);
 }
 
+/* アイコンはスマホの下部タブバーでだけ出す。 */
+.nav-icon { display: none; }
+
+.status-chips,
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
 .user-chip {
   background: #f5ead5;
   border: 1px solid #ecd3a7;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: #6f4812;
   font-weight: 800;
   padding: 8px 12px;
@@ -97,7 +155,7 @@ a { color: var(--accent-dark); font-weight: 700; }
 .panel {
   background: rgba(255, 253, 247, 0.94);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 20px;
 }
@@ -142,7 +200,7 @@ label {
 select, input {
   min-width: 180px;
   padding: 11px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   border: 1px solid var(--line);
   background: #fffaf0;
   color: var(--ink);
@@ -155,7 +213,7 @@ select, input {
   justify-content: center;
   min-height: 42px;
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   border: 1px solid var(--accent-dark);
   background: var(--accent);
   color: #ffffff;
@@ -166,7 +224,9 @@ select, input {
   transition: transform 0.18s ease, background-color 0.18s ease;
 }
 
-.button:hover { background: var(--accent-dark); transform: translateY(-1px); }
+@media (hover: hover) {
+  .button:hover { background: var(--accent-dark); transform: translateY(-1px); }
+}
 .button.secondary { background: #fffaf0; color: var(--accent-dark); }
 .button:disabled { cursor: not-allowed; opacity: 0.65; transform: none; }
 .text-link { white-space: nowrap; }
@@ -189,7 +249,7 @@ select, input {
 .stat-card {
   background: #fffaf0;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 18px;
 }
 
@@ -207,7 +267,7 @@ select, input {
 
 .tag {
   padding: 6px 10px;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   background: #e4f1ed;
   color: var(--accent-dark);
   font-weight: 900;
@@ -226,7 +286,7 @@ select, input {
   gap: 4px;
   padding: 4px;
   margin-bottom: 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: #efe9da;
 }
 
@@ -237,7 +297,7 @@ select, input {
   min-height: 52px;
   padding: 8px 6px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--muted);
   font: inherit;
@@ -264,7 +324,7 @@ select, input {
   gap: 4px;
   padding: 4px;
   margin: 4px 0 6px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: #efe9da;
 }
 
@@ -272,7 +332,7 @@ select, input {
   min-height: 48px;
   padding: 8px 6px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--muted);
   font: inherit;
@@ -301,7 +361,7 @@ select, input {
   align-items: center;
   padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #fffaf0;
 }
 
@@ -386,7 +446,7 @@ select, input {
 .timer-display {
   background: #e4f1ed;
   border: 1px solid #bdd9d1;
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 16px;
   display: grid;
   gap: 10px;
@@ -409,7 +469,7 @@ select, input {
 .meter,
 .bar-shell {
   background: #e5ddca;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   overflow: hidden;
 }
 
@@ -444,7 +504,8 @@ body.solving-mode .app-shell {
      実際の表示領域を指す 100dvh を使う。 */
   height: 100vh;
   height: 100dvh;
-  padding: 0;
+  /* 横向きのスマホでノッチの下に選択肢が潜らないよう、左右だけ安全域を残す。 */
+  padding: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
   display: flex;
   flex-direction: column;
 }
@@ -481,7 +542,7 @@ body.solving-mode .challenge-panel {
   flex-shrink: 0;
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: var(--z-sticky);
 }
 
 .answer-scroll-area {
@@ -500,7 +561,7 @@ body.solving-mode .challenge-panel {
 
 .answer-result-overlay {
   position: fixed;
-  z-index: 20;
+  z-index: var(--z-overlay);
   inset: 0;
   display: grid;
   place-content: center;
@@ -532,7 +593,7 @@ body.solving-mode .challenge-panel {
 .question-card {
   background: #fffaf0;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 18px;
 }
 
@@ -547,7 +608,7 @@ body.solving-mode .challenge-panel {
 .option-button {
   min-height: 56px;
   padding: 14px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   border: 1px solid #bdd9d1;
   background: #f2fbf8;
   color: var(--ink);
@@ -558,9 +619,11 @@ body.solving-mode .challenge-panel {
   text-align: left;
 }
 
-.option-button:hover {
-  border-color: var(--accent);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .option-button:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
 }
 
 .graph-answer-buttons {
@@ -575,16 +638,18 @@ body.solving-mode .challenge-panel {
   justify-items: center;
   padding: 12px;
   border: 1px solid #bdd9d1;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #f2fbf8;
   color: var(--ink);
   cursor: pointer;
   font: inherit;
 }
 
-.graph-option-button:hover {
-  border-color: var(--accent);
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .graph-option-button:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
 }
 
 .graph-option-label {
@@ -616,7 +681,7 @@ body.solving-mode .challenge-panel {
   min-width: 200px;
   min-height: 56px;
   padding: 14px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   border: 1px solid #bdd9d1;
   background: #f2fbf8;
   color: var(--ink);
@@ -625,7 +690,6 @@ body.solving-mode .challenge-panel {
 }
 
 .answer-text-input:focus {
-  outline: none;
   border-color: var(--accent);
 }
 
@@ -643,17 +707,27 @@ body.solving-mode .challenge-panel {
   font-weight: 800;
 }
 
+/* 失敗・入力エラー。成功の .feedback と同じ緑だと区別がつかないので赤系にする。 */
+.feedback-error {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-line);
+  border-radius: var(--radius);
+  color: var(--danger-text);
+  font-weight: 800;
+  padding: var(--space-2) var(--space-3);
+}
+
 .feedback-panel {
   background: #f5ead5;
   border: 1px solid #ecd3a7;
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 14px;
 }
 
 .result-card {
   text-align: center;
   padding: 24px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #fffaf0;
   border: 1px solid var(--line);
 }
@@ -742,7 +816,7 @@ body.solving-mode .challenge-panel {
   align-items: center;
   background: #eaf6f2;
   border: 1px solid #bdd9d1;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: flex;
   gap: 8px;
   padding: 6px 12px;
@@ -750,7 +824,7 @@ body.solving-mode .challenge-panel {
 
 .level-chip-badge {
   background: var(--accent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: #ffffff;
   font-size: 0.78rem;
   font-weight: 900;
@@ -760,7 +834,7 @@ body.solving-mode .challenge-panel {
 
 .level-chip-bar {
   background: #d7ece5;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: block;
   height: 8px;
   overflow: hidden;
@@ -788,7 +862,7 @@ body.solving-mode .challenge-panel {
 
 .level-panel-badge {
   background: linear-gradient(180deg, var(--gold), var(--accent));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: #ffffff;
   display: grid;
   flex-shrink: 0;
@@ -805,7 +879,7 @@ body.solving-mode .challenge-panel {
   align-items: center;
   background: #fdf3e0;
   border: 1px solid #edd6a3;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: flex;
   gap: 6px;
   font-weight: 700;
@@ -829,7 +903,7 @@ body.solving-mode .challenge-panel {
 
 .points-panel-badge {
   background: linear-gradient(180deg, var(--gold), #e0a53d);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: grid;
   flex-shrink: 0;
   font-size: 1.6rem;
@@ -913,7 +987,7 @@ body.solving-mode .challenge-panel {
 .level-result {
   background: #eaf6f2;
   border: 1px solid #bdd9d1;
-  border-radius: 8px;
+  border-radius: var(--radius);
   margin-top: 12px;
   padding: 14px;
 }
@@ -921,7 +995,7 @@ body.solving-mode .challenge-panel {
 .points-result {
   background: #fdf3e0;
   border: 1px solid #edd6a3;
-  border-radius: 8px;
+  border-radius: var(--radius);
   margin-top: 12px;
   padding: 14px;
 }
@@ -929,7 +1003,7 @@ body.solving-mode .challenge-panel {
 .trophy-result {
   background: #fff6e0;
   border: 1px solid #ecd9a0;
-  border-radius: 8px;
+  border-radius: var(--radius);
   margin-top: 12px;
   padding: 14px;
 }
@@ -948,7 +1022,7 @@ body.solving-mode .challenge-panel {
 }
 
 .answer-review-item {
-  border-radius: 8px;
+  border-radius: var(--radius);
   border: 1px solid var(--line);
   padding: 12px 14px;
 }
@@ -1006,7 +1080,7 @@ body.solving-mode .challenge-panel {
 .trophy-card {
   background: #fff6e0;
   border: 1px solid #ecd9a0;
-  border-radius: 8px;
+  border-radius: var(--radius);
   display: grid;
   gap: 6px;
   padding: 14px;
@@ -1048,15 +1122,25 @@ body.solving-mode .challenge-panel {
 @media (max-width: 560px) {
   .app-shell { width: min(100% - 20px, 1120px); }
 
-  .answer-buttons,
-  .graph-answer-buttons,
+  /* 4択は1列に並べると親指が届かずスクロールも要るので、スマホでも 2×2 のままにする。 */
   .subject-row {
     grid-template-columns: 1fr;
   }
 
-  .filters,
-  .auth-actions,
-  .nav-links {
+  .answer-buttons,
+  .graph-answer-buttons {
+    gap: var(--space-2);
+  }
+
+  .option-button {
+    min-height: 52px;
+    padding: var(--space-3);
+    font-size: 0.95rem;
+  }
+
+  .graph-option-button { padding: var(--space-2); }
+
+  .filters {
     width: 100%;
   }
 
@@ -1068,16 +1152,103 @@ body.solving-mode .challenge-panel {
   .level-chip-bar { width: 46px; }
 
   .question-card h3 { font-size: 1.25rem; }
+
+  /* --- ヘッダー: 1段目にブランドとアカウント、2段目にレベル・ポイント --- */
+  .top-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand account"
+      "chips chips";
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-2) 0 var(--space-4);
+  }
+
+  .brand-block { grid-area: brand; min-width: 0; }
+  .brand-block p { display: none; }
+  .brand-mark { font-size: var(--text-lg); }
+
+  .auth-actions { display: contents; }
+  .status-chips { grid-area: chips; flex-wrap: nowrap; gap: var(--space-2); }
+
+  .account-actions {
+    grid-area: account;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+    justify-content: flex-end;
+  }
+
+  .account-actions .user-chip {
+    max-width: 7em;
+    overflow: hidden;
+    padding: 6px 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .account-actions .button {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+
+  /* --- 下部固定タブバー --- */
+  .nav-links {
+    position: fixed;
+    z-index: var(--z-nav);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    padding:
+      0
+      env(safe-area-inset-right, 0px)
+      env(safe-area-inset-bottom, 0px)
+      env(safe-area-inset-left, 0px);
+    border-top: 1px solid var(--line);
+    background: rgba(255, 253, 247, 0.97);
+    box-shadow: 0 -6px 18px rgba(54, 48, 34, 0.08);
+  }
+
+  .nav-links a {
+    display: grid;
+    gap: 2px;
+    justify-items: center;
+    align-content: center;
+    min-height: var(--bottom-nav-height);
+    padding: var(--space-1) 2px;
+    border-radius: 0;
+    font-size: var(--text-xs);
+    white-space: nowrap;
+  }
+
+  .nav-links a.active {
+    background: transparent;
+    box-shadow: inset 0 3px 0 var(--accent);
+  }
+
+  .nav-icon {
+    display: block;
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+
+  .nav-links a:not(.active) .nav-icon { opacity: 0.6; }
+
+  /* タブバーの裏に最後の要素が隠れないよう、その高さぶん下に余白を取る。 */
+  .app-shell.has-bottom-nav {
+    padding-bottom: calc(var(--bottom-nav-height) + var(--space-6) + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .tag.success { background: #e4f1ed; color: var(--accent-dark); }
-.tag.danger { background: #f7e3e3; color: var(--rose); }
+.tag.danger { background: #f7e3e3; color: var(--danger-text); }
 
 .role-select {
   display: flex;
   gap: 20px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 12px 14px;
   margin: 0;
 }
@@ -1118,7 +1289,7 @@ body.solving-mode .challenge-panel {
 .family-member-list li {
   background: #fffaf0;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 10px 14px;
   font-weight: 700;
 }
@@ -1133,7 +1304,7 @@ body.solving-mode .challenge-panel {
 
 .request-card {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 14px;
   display: grid;
   gap: 6px;
@@ -1194,12 +1365,12 @@ body.solving-mode .challenge-panel {
   transform: translateX(-50%);
   background: #fffdf7;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 10px 12px;
   min-width: 160px;
   pointer-events: none;
-  z-index: 3;
+  z-index: var(--z-popover);
 }
 
 .speed-chart-tooltip strong {
@@ -1405,7 +1576,7 @@ body.solving-mode .challenge-panel {
   align-content: center;
   background: #16262b;
   border: 2px solid #2dd4bf;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   color: #f3f5f4;
   cursor: pointer;
   display: grid;
@@ -1452,7 +1623,7 @@ body.solving-mode .challenge-panel {
 }
 
 .rhythm-lane-graph .linear-graph.lane {
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   /* 2択でボタンが2レーンぶんに広がったとき、グラフが縦に伸びすぎて
      ノーツの流れる場所を潰さないよう、画面の高さでも頭打ちにする。 */
   margin: 0 auto;
@@ -1488,7 +1659,7 @@ body.solving-mode .challenge-panel {
 
 .rhythm-song-card {
   background: #0b1417;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   color: #f3f5f4;
   padding: 14px 18px;
 }
@@ -1513,7 +1684,7 @@ body.solving-mode .challenge-panel {
 .rhythm-howto kbd {
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   font-family: inherit;
   font-weight: 700;
   padding: 1px 7px;
@@ -1562,7 +1733,7 @@ body.solving-mode .challenge-panel {
 .rhythm-judge-tally {
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   display: grid;
   gap: 2px;
   padding: 10px 8px;
@@ -1577,8 +1748,8 @@ body.solving-mode .challenge-panel {
 
 .rhythm-judge-tally.perfect .rhythm-judge-tally-label { color: var(--gold); }
 .rhythm-judge-tally.great .rhythm-judge-tally-label { color: var(--accent); }
-.rhythm-judge-tally.good .rhythm-judge-tally-label { color: #4f7fb8; }
-.rhythm-judge-tally.miss .rhythm-judge-tally-label { color: var(--rose); }
+.rhythm-judge-tally.good .rhythm-judge-tally-label { color: #3a679f; }
+.rhythm-judge-tally.miss .rhythm-judge-tally-label { color: var(--danger-text); }
 
 .rhythm-judge-tally-count {
   font-size: 1.4rem;
@@ -1647,5 +1818,23 @@ body.solving-mode .challenge-panel {
 
   .rhythm-lane-key {
     display: none;
+  }
+}
+
+/* 動きを減らす設定の端末では、アニメーションと hover の浮き上がりを止める。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .button:hover,
+  .option-button:hover,
+  .graph-option-button:hover {
+    transform: none;
   }
 }

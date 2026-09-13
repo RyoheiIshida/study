@@ -47,7 +47,7 @@ function Progress() {
             {isLoading ? '読み込み中...' : '更新'}
           </button>
         </div>
-        {errorMessage && <p className="feedback">{errorMessage}</p>}
+        {errorMessage && <p className="feedback-error" role="alert">{errorMessage}</p>}
         <div className="stat-grid">
           <div className="stat-card">
             <span>完了数</span>

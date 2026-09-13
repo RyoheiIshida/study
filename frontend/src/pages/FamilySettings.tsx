@@ -73,7 +73,7 @@ function FamilySettings() {
       <div className="panel">
         <p className="eyebrow">家族設定</p>
         <h2>{user?.role === 'PARENT' ? '子供のアカウントと連携する' : '親のアカウントと連携する'}</h2>
-        {errorMessage && <p className="feedback">{errorMessage}</p>}
+        {errorMessage && <p className="feedback-error" role="alert">{errorMessage}</p>}
       </div>
 
       {info?.role === 'PARENT' && (
@@ -125,7 +125,7 @@ function FamilySettings() {
                 招待コード
                 <input value={code} onChange={(e) => setCode(e.target.value)} maxLength={6} required />
               </label>
-              {linkError && <p className="feedback">{linkError}</p>}
+              {linkError && <p className="feedback-error" role="alert">{linkError}</p>}
               <button className="button" type="submit" disabled={isLinking}>
                 {isLinking ? '連携中...' : '連携する'}
               </button>
