@@ -74,9 +74,10 @@ const definitions: SecretTrophyDefinition[] = [
     id: 'night-owl',
     icon: '🦉',
     name: '夜ふかし博士',
-    hint: 'みんなが寝しずまったころに…',
-    description: '夜10時から朝4時のあいだにクイズをやりとげた。',
-    achievedAt: ({ attempts }) => firstAttempt(attempts, (a) => jstHour(a.playedAt) >= 22 || jstHour(a.playedAt) < 4),
+    hint: '夜空に星が出るころに…',
+    description: '夜10時から12時のあいだにクイズをやりとげた。',
+    // 子供が使うアプリなので、日付が変わってからの本当の夜ふかしはごほうびの対象にしない。
+    achievedAt: ({ attempts }) => firstAttempt(attempts, (a) => jstHour(a.playedAt) >= 22),
   },
   {
     id: 'early-bird',
