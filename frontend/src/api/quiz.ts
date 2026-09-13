@@ -1,4 +1,4 @@
-import { Grade, ProgressRecord, Question, Quiz, Subject } from '../types';
+import { Grade, ProgressRecord, Question, Quiz, SavedProgress, Subject } from '../types';
 import { TOKEN_KEY } from './auth';
 import { childQuery } from './childQuery';
 
@@ -747,9 +747,9 @@ export async function fetchQuizById(id: string): Promise<Quiz | undefined> {
   }
 }
 
-export async function saveProgress(record: ProgressRecord): Promise<ProgressRecord> {
+export async function saveProgress(record: ProgressRecord): Promise<SavedProgress> {
   try {
-    return await fetchJson<ProgressRecord>('/api/progress', {
+    return await fetchJson<SavedProgress>('/api/progress', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(record),

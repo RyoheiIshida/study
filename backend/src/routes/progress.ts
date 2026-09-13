@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { resolveViewTarget } from '../middleware/viewTarget.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
+import { rollLuckyBonus } from '../lib/luckyBonus.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -48,6 +49,9 @@ router.post('/', asyncHandler(async (req, res) => {
     lastPlayed: record.lastPlayed ? new Date(record.lastPlayed) : new Date(),
   };
 
+  // 抽選はサーバーで行い、結果を記録に残す。クライアントから当たりを指定することはできない。
+  const luckyBonus = rollLuckyBonus(payload.correct);
+
   const [saved] = await prisma.$transaction([
     prisma.progressRecord.upsert({
       where: {
@@ -67,12 +71,13 @@ router.post('/', asyncHandler(async (req, res) => {
         correct: payload.correct,
         streak: payload.streak,
         durationMs,
+        luckyBonusXp: luckyBonus.bonusXp,
         playedAt: payload.lastPlayed,
       },
     }),
   ]);
 
-  res.status(201).json(saved);
+  res.status(201).json({ ...saved, luckyBonus });
 }));
 
 export default router;

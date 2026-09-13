@@ -5,7 +5,7 @@ import { fetchXpSummary } from '../api/xp';
 import { fetchPointsSummary } from '../api/points';
 import { fetchTrophySummary } from '../api/trophies';
 import { saveAnswerSpeedRecords } from '../api/answerSpeed';
-import { AnswerSpeedRecord, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
+import { AnswerSpeedRecord, LuckyBonus, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import { pickSessionQuestions } from '../utils/shuffle';
 import { getDifficultyLabel, getSessionQuestionLimit } from '../utils/quizGroups';
 import { LaneChoice, buildLaneChoices } from '../utils/answerOptions';
@@ -13,6 +13,7 @@ import { normalizeReading } from '../utils/reading';
 import NoteHighway, { LANE_COLORS } from '../components/NoteHighway';
 import LinearGraph from '../components/LinearGraph';
 import SecretTrophyUnlock from '../components/SecretTrophyUnlock';
+import LuckyBonusReveal from '../components/LuckyBonusReveal';
 import { AudioEngine } from '../music/engine';
 import {
   DIFFICULTY_TIERS,
@@ -110,6 +111,7 @@ function RhythmChallenge() {
   const [pointsAfter, setPointsAfter] = useState<PointsSummary | null>(null);
   const [trophiesBefore, setTrophiesBefore] = useState<TrophySummary | null>(null);
   const [trophiesAfter, setTrophiesAfter] = useState<TrophySummary | null>(null);
+  const [luckyBonus, setLuckyBonus] = useState<LuckyBonus | null>(null);
 
   const [calibrating, setCalibrating] = useState(false);
   const [calibrationTaps, setCalibrationTaps] = useState(0);
@@ -273,6 +275,7 @@ function RhythmChallenge() {
     // 続けてプレイするとき、前回見つけたシークレットトロフィーをまた「発見」と出さないよう基準を進める。
     if (trophiesAfter) setTrophiesBefore(trophiesAfter);
     setTrophiesAfter(null);
+    setLuckyBonus(null);
 
     engine.setVolume(settings.volume);
     engine.setOffsetMs(settings.offsetMs);
@@ -367,7 +370,8 @@ function RhythmChallenge() {
       if (!quiz) return;
       setSaveStatus('saving');
       try {
-        await saveProgress(record);
+        const saved = await saveProgress(record);
+        setLuckyBonus(saved.luckyBonus ?? null);
         setXpAfter(await fetchXpSummary());
         setPointsAfter(await fetchPointsSummary());
         setTrophiesAfter(await fetchTrophySummary());
@@ -532,6 +536,7 @@ function RhythmChallenge() {
           {saveStatus === 'saved' && (
             <>
               <p className="feedback">進捗を保存しました。</p>
+              <LuckyBonusReveal bonus={luckyBonus} />
               {xpAfter && (
                 <div className="level-result">
                   <p className="eyebrow">経験値</p>

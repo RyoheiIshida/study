@@ -5,8 +5,9 @@ import { fetchXpSummary } from '../api/xp';
 import { fetchPointsSummary } from '../api/points';
 import { fetchTrophySummary } from '../api/trophies';
 import { saveAnswerSpeedRecords } from '../api/answerSpeed';
-import { AnswerLogEntry, AnswerSpeedRecord, GameState, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
+import { AnswerLogEntry, AnswerSpeedRecord, GameState, LuckyBonus, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import ScoreCard from '../components/ScoreCard';
+import LuckyBonusReveal from '../components/LuckyBonusReveal';
 import SecretTrophyUnlock from '../components/SecretTrophyUnlock';
 import TimerDisplay from '../components/TimerDisplay';
 import LinearGraph from '../components/LinearGraph';
@@ -43,6 +44,7 @@ function QuestionChallenge() {
   const [pointsAfter, setPointsAfter] = useState<PointsSummary | null>(null);
   const [trophiesBefore, setTrophiesBefore] = useState<TrophySummary | null>(null);
   const [trophiesAfter, setTrophiesAfter] = useState<TrophySummary | null>(null);
+  const [luckyBonus, setLuckyBonus] = useState<LuckyBonus | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const [answerLog, setAnswerLog] = useState<AnswerLogEntry[]>([]);
   const [awaitingNext, setAwaitingNext] = useState(false);
@@ -80,6 +82,7 @@ function QuestionChallenge() {
     setXpAfter(null);
     setPointsAfter(null);
     setTrophiesAfter(null);
+    setLuckyBonus(null);
     setQuiz(null);
     setRetryKey((key) => key + 1);
     setAnswerLog([]);
@@ -206,7 +209,8 @@ function QuestionChallenge() {
     async function persistProgress() {
       setSaveStatus('saving');
       try {
-        await saveProgress(record);
+        const saved = await saveProgress(record);
+        setLuckyBonus(saved.luckyBonus ?? null);
         const summary = await fetchXpSummary();
         setXpAfter(summary);
         const pointsSummary = await fetchPointsSummary();
@@ -275,6 +279,7 @@ function QuestionChallenge() {
             {saveStatus === 'saved' && (
               <>
                 <p className="feedback">進捗を保存しました。</p>
+                <LuckyBonusReveal bonus={luckyBonus} />
                 {xpAfter && (
                   <div className="level-result">
                     <p className="eyebrow">経験値</p>

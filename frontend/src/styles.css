@@ -1958,3 +1958,58 @@ body.solving-mode .challenge-panel {
 
 .secret-grid .trophy-card { gap: var(--space-1); padding: var(--space-3) var(--space-2); }
 .secret-grid .trophy-icon { font-size: 1.7rem; }
+
+/* ラッキーボーナス：当たりの段階ごとに色と演出の強さを変える */
+.lucky-bonus {
+  align-items: center;
+  animation: lucky-pop 560ms ease-out;
+  background: #fdf6e3;
+  border: 1px solid #ead19a;
+  border-radius: var(--radius);
+  display: flex;
+  gap: var(--space-3);
+  margin-top: 12px;
+  padding: 14px;
+  text-align: left;
+}
+
+.lucky-bonus .eyebrow { margin: 0; }
+.lucky-bonus-icon { font-size: 2.4rem; line-height: 1; }
+.lucky-bonus-label { display: block; font-size: var(--text-lg); }
+.lucky-bonus-detail { color: var(--muted); margin: var(--space-1) 0 0; }
+
+.lucky-super {
+  background: #fff4d6;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(217, 154, 43, 0.18);
+}
+
+.lucky-miracle {
+  background: linear-gradient(120deg, #ffe9ec, #fff6d8, #e3f6ee, #e6eefc);
+  border-color: #c9a6e8;
+  box-shadow: 0 0 0 3px rgba(160, 110, 210, 0.2);
+}
+
+.lucky-miracle .lucky-bonus-icon { animation: lucky-spin 1.2s ease-out; }
+
+.lucky-miss {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  margin-top: 12px;
+}
+
+@keyframes lucky-pop {
+  0% { opacity: 0; transform: scale(0.85); }
+  55% { opacity: 1; transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@keyframes lucky-spin {
+  0% { transform: rotate(-180deg) scale(0.4); }
+  100% { transform: rotate(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lucky-bonus,
+  .lucky-miracle .lucky-bonus-icon { animation: none; }
+}
