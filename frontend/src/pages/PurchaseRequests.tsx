@@ -120,7 +120,7 @@ function PurchaseRequests() {
               <strong>1pt = {rateInfo.rate}円</strong>
             </div>
             <div className="stat-card">
-              <span>直近の正答率</span>
+              <span>直近の正答率(難易度補正あり)</span>
               <strong>{Math.round(rateInfo.recentAccuracy * 100)}%</strong>
             </div>
             <div className="stat-card">

@@ -19,6 +19,7 @@ router.get('/', resolveViewTarget, asyncHandler(async (req, res) => {
   const attempts = await prisma.quizAttempt.findMany({
     where: { username: req.targetUsername! },
     orderBy: { playedAt: 'asc' },
+    include: { quiz: { select: { grade: true } } },
   });
 
   let cumulativeXp = 0;

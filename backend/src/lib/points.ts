@@ -1,29 +1,22 @@
 import { prisma } from '../db.js';
 import { PurchaseRequestStatus } from '../generated/client.js';
 import { jstDateKey } from './loginDays.js';
+import { rewardRuleFor } from './difficulty.js';
 
 export interface AttemptForPoints {
+  quizId: string;
   correct: number;
   playedAt: Date;
   quiz: { grade: string };
 }
 
-// ポイントはおこづかい（現金）に換わるので、1問1pt・1pt≒1円を目安にする。
-const POINTS_PER_CORRECT_ANSWER = 1;
-
-// 1日にもらえるポイントの上限。まとめて長時間解くほど得をする形にしないため。
+// 1日にもらえるポイントの上限（1pt≒1円）。まとめて長時間解くほど得をする形にしないため。
 // 毎日上限まで解いて約20日で、月の最大交換額（1,000円）に届く。
+// 1問あたりのポイントは難易度で決まり（difficulty.ts）、小学生向けのクイズは 0pt。
 export const DAILY_POINT_LIMIT = 50;
 
-// 中学生が小学生向けの簡単な問題だけでポイントを稼げないよう、ここに入る学年は XP だけにする。
-const XP_ONLY_GRADES = new Set(['Elementary']);
-
-export function earnsPoints(grade: string): boolean {
-  return !XP_ONLY_GRADES.has(grade);
-}
-
 function uncappedAttemptPoints(attempt: AttemptForPoints): number {
-  return earnsPoints(attempt.quiz.grade) ? attempt.correct * POINTS_PER_CORRECT_ANSWER : 0;
+  return attempt.correct * rewardRuleFor(attempt.quizId, attempt.quiz.grade).pointsPerCorrect;
 }
 
 export interface PointsLedger {

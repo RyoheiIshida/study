@@ -4,6 +4,7 @@ import { resolveViewTarget } from '../middleware/viewTarget.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 import { rollLuckyBonus } from '../lib/luckyBonus.js';
+import { rewardRuleFor } from '../lib/difficulty.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -35,7 +36,7 @@ router.post('/', asyncHandler(async (req, res) => {
   // 正解数はポイント（おこづかい）と XP に直結するので、送られてきた値をそのまま信じずクイズの問題数と照らし合わせる。
   const quiz = await prisma.quiz.findUnique({
     where: { id: record.quizId },
-    select: { _count: { select: { questions: true } } },
+    select: { grade: true, _count: { select: { questions: true } } },
   });
   const streak = record.streak ?? 0;
   const completed = record.completed ?? 0;
@@ -72,7 +73,7 @@ router.post('/', asyncHandler(async (req, res) => {
   };
 
   // 抽選はサーバーで行い、結果を記録に残す。クライアントから当たりを指定することはできない。
-  const luckyBonus = rollLuckyBonus(payload.correct);
+  const luckyBonus = rollLuckyBonus(payload.correct, rewardRuleFor(payload.quizId, quiz.grade).xpPerCorrect);
 
   const [saved] = await prisma.$transaction([
     prisma.progressRecord.upsert({

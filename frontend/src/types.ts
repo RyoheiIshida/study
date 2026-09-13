@@ -44,6 +44,19 @@ export interface Quiz {
   description: string;
   questions: Question[];
   createdAt?: string;
+  /** サーバーが決める難易度ごとの報酬。端末に保存したクイズ（API に届かないとき）には付かない。 */
+  reward?: RewardRule;
+}
+
+export type DifficultyTier = 'basic' | 'star1' | 'star2' | 'star3';
+
+export interface RewardRule {
+  tier: DifficultyTier;
+  stars: number;
+  label: string;
+  xpPerCorrect: number;
+  pointsPerCorrect: number;
+  accuracyBonus: number;
 }
 
 export interface ProgressRecord {

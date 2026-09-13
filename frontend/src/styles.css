@@ -275,6 +275,24 @@ select, input {
 }
 
 .tag.muted { background: #f5ead5; color: #7a5016; }
+
+/* 難易度の星と1問あたりの報酬。星が多いほど色を濃くする。 */
+.reward-badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: #f1f1ec;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.reward-badge.reward-star1 { background: #fbf1dc; color: #7a5016; }
+.reward-badge.reward-star2 { background: #f6e0b5; color: #6b430f; }
+.reward-badge.reward-star3 { background: var(--gold); color: #3d2606; }
 .card-actions { margin-top: 16px; }
 .hint { margin: 0; color: var(--muted); }
 

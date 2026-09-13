@@ -1,4 +1,8 @@
+import { rewardRuleFor } from './difficulty.js';
+
 export interface AttemptForXp {
+  quizId: string;
+  quiz: { grade: string };
   correct: number;
   total: number;
   streak: number;
@@ -15,7 +19,8 @@ export interface LevelProgress {
 }
 
 export function computeAttemptXp(attempt: AttemptForXp): number {
-  const base = attempt.correct * 10;
+  // 難しいクイズほど1問あたりの XP が多い。全問正解と連続正解のボーナスは難易度によらず同じ。
+  const base = attempt.correct * rewardRuleFor(attempt.quizId, attempt.quiz.grade).xpPerCorrect;
   const completionBonus = attempt.total > 0 && attempt.correct === attempt.total ? 20 : 0;
   const streakBonus = attempt.streak * 2;
   return base + completionBonus + streakBonus + (attempt.luckyBonusXp ?? 0);

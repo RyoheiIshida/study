@@ -51,7 +51,10 @@ export function jstMonthRange(now: Date) {
 }
 
 export async function computeTotalXp(username: string): Promise<number> {
-  const attempts = await prisma.quizAttempt.findMany({ where: { username } });
+  const attempts = await prisma.quizAttempt.findMany({
+    where: { username },
+    include: { quiz: { select: { grade: true } } },
+  });
   return attempts.reduce((sum, attempt) => sum + computeAttemptXp(attempt), 0);
 }
 

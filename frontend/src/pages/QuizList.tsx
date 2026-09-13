@@ -8,6 +8,7 @@ import { isRhythmEligible } from '../music/chart';
 import { playPath } from '../utils/playMode';
 import { usePlayMode } from '../hooks/usePlayMode';
 import PlayModeToggle from '../components/PlayModeToggle';
+import RewardBadge from '../components/RewardBadge';
 import DailyQuestPanel from '../components/DailyQuestPanel';
 
 interface QuizListEntry {
@@ -97,6 +98,8 @@ function QuizList() {
                   <h3>{entry.title}</h3>
                   <p>{entry.description}</p>
                   <p className="hint">問題数 {entry.questionCount}問</p>
+                  {entry.quiz?.reward && <p><RewardBadge reward={entry.quiz.reward} /></p>}
+                  {entry.groupId && <p className="hint">難しい段階ほど、1問あたりのXPとポイントが増えます。</p>}
                   {onlyNormal && <p className="hint">このクイズは音ゲーモードに対応していないため、通常モードで始まります。</p>}
                   <div className="card-actions">
                     <Link
