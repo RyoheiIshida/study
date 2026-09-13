@@ -1,4 +1,5 @@
 import { jstDateKey } from './loginDays.js';
+import { Rarity } from './rarity.js';
 
 /**
  * Secret trophies add a sense of mystery: the condition stays hidden and only
@@ -26,6 +27,8 @@ export interface SecretTrophyInput {
 export interface SecretTrophy {
   id: string;
   hint: string;
+  /** Shown even while locked so players can tell how big the find would be. */
+  rarity: Rarity;
   unlocked: boolean;
   /** The rest stays undefined while locked so the answer never reaches the client. */
   icon?: string;
@@ -39,6 +42,8 @@ interface SecretTrophyDefinition {
   icon: string;
   name: string;
   hint: string;
+  /** 条件の難しさで決める。夜のプレイは健康のためにすすめたくないので、高い希少度にはしない。 */
+  rarity: Rarity;
   description: string;
   /** Returns when the condition was first met, or null if it has not been. */
   achievedAt(input: SecretTrophyInput): Date | null;
@@ -75,6 +80,7 @@ const definitions: SecretTrophyDefinition[] = [
     icon: '🦉',
     name: '夜ふかし博士',
     hint: '夜空に星が出るころに…',
+    rarity: 'common',
     description: '夜10時から12時のあいだにクイズをやりとげた。',
     // 子供が使うアプリなので、日付が変わってからの本当の夜ふかしはごほうびの対象にしない。
     achievedAt: ({ attempts }) => firstAttempt(attempts, (a) => jstHour(a.playedAt) >= 22),
@@ -84,6 +90,7 @@ const definitions: SecretTrophyDefinition[] = [
     icon: '🐓',
     name: '早起きの達人',
     hint: '太陽よりも先に…',
+    rarity: 'rare',
     description: '朝5時から7時のあいだにクイズをやりとげた。',
     achievedAt: ({ attempts }) => firstAttempt(attempts, (a) => jstHour(a.playedAt) >= 5 && jstHour(a.playedAt) < 7),
   },
@@ -92,6 +99,7 @@ const definitions: SecretTrophyDefinition[] = [
     icon: '⚡',
     name: '電光石火',
     hint: '目にもとまらぬ…',
+    rarity: 'epic',
     description: `${FAST_PERFECT_MIN_QUESTIONS}問以上のクイズを、1問${FAST_PERFECT_MS_PER_QUESTION / 1000}秒未満のペースで全問正解した。`,
     achievedAt: ({ attempts }) =>
       firstAttempt(
@@ -108,6 +116,7 @@ const definitions: SecretTrophyDefinition[] = [
     icon: '🌱',
     name: '七転び八起き',
     hint: 'あきらめなかった人だけが…',
+    rarity: 'rare',
     description: `同じクイズで${COMEBACK_MISSES}回以上まちがえたあと、ついに全問正解した。`,
     achievedAt: ({ attempts }) => {
       const missesByQuiz = new Map<string, number>();
@@ -127,6 +136,7 @@ const definitions: SecretTrophyDefinition[] = [
     icon: '🍀',
     name: 'ラッキーセブン',
     hint: 'ある数字にえんがある日に…',
+    rarity: 'common',
     description: '7のつく日（7日・17日・27日）に全問正解した。',
     achievedAt: ({ attempts }) =>
       firstAttempt(attempts, (a) => isPerfect(a) && jstDateKey(a.playedAt).endsWith('7')),
@@ -136,6 +146,7 @@ const definitions: SecretTrophyDefinition[] = [
     icon: '🧭',
     name: '知の冒険家',
     hint: 'いろんな世界をのぞいてみると…',
+    rarity: 'common',
     description: `${EXPLORER_SUBJECTS}つ以上の教科でクイズをやりとげた。`,
     achievedAt: ({ attempts }) => {
       const subjects = new Set<string>();
@@ -151,6 +162,7 @@ const definitions: SecretTrophyDefinition[] = [
     icon: '📅',
     name: '皆勤賞',
     hint: '毎日のつみかさねが…',
+    rarity: 'epic',
     description: `${LOGIN_STREAK_DAYS}日連続でアプリを開いた。`,
     achievedAt: ({ loginDates }) => {
       let run = 0;
@@ -168,6 +180,7 @@ const definitions: SecretTrophyDefinition[] = [
     icon: '⚔️',
     name: '百戦錬磨',
     hint: '数えきれないほど…',
+    rarity: 'legendary',
     description: `クイズを${VETERAN_ATTEMPTS}回やりとげた。`,
     achievedAt: ({ attempts }) => attempts[VETERAN_ATTEMPTS - 1]?.playedAt ?? null,
   },
@@ -177,11 +190,12 @@ export function computeSecretTrophies(input: SecretTrophyInput): SecretTrophy[] 
   return definitions.map((definition) => {
     const achievedAt = definition.achievedAt(input);
     if (!achievedAt) {
-      return { id: definition.id, hint: definition.hint, unlocked: false };
+      return { id: definition.id, hint: definition.hint, rarity: definition.rarity, unlocked: false };
     }
     return {
       id: definition.id,
       hint: definition.hint,
+      rarity: definition.rarity,
       unlocked: true,
       icon: definition.icon,
       name: definition.name,

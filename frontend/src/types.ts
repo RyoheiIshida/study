@@ -115,17 +115,26 @@ export interface PointsSummary {
   totalAttempts: number;
 }
 
+/** トロフィーの希少度。低いものから順に common → rare → epic → legendary。 */
+export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
+
 export interface Trophy {
   quizId: string;
   quizTitle: string;
   subject: Subject;
   achievedAt: string;
+  /** 全問正解した日数（同じ日は何回やっても1日）。日数が増えると希少度が上がる。 */
+  perfectDays: number;
+  rarity: Rarity;
+  /** 次の希少度と、それに必要な日数。レジェンドになったら null。 */
+  next: { rarity: Rarity; perfectDays: number } | null;
 }
 
-/** 条件はひみつ。未発見のあいだはヒントしか届かない。 */
+/** 条件はひみつ。未発見のあいだはヒントと希少度しか届かない。 */
 export interface SecretTrophy {
   id: string;
   hint: string;
+  rarity: Rarity;
   unlocked: boolean;
   icon?: string;
   name?: string;
