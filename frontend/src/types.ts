@@ -108,9 +108,21 @@ export interface Trophy {
   achievedAt: string;
 }
 
+/** 条件はひみつ。未発見のあいだはヒントしか届かない。 */
+export interface SecretTrophy {
+  id: string;
+  hint: string;
+  unlocked: boolean;
+  icon?: string;
+  name?: string;
+  description?: string;
+  achievedAt?: string;
+}
+
 export interface TrophySummary {
   trophies: Trophy[];
   count: number;
+  secrets: SecretTrophy[];
 }
 
 export interface GameState {

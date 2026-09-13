@@ -7,6 +7,7 @@ import { fetchTrophySummary } from '../api/trophies';
 import { saveAnswerSpeedRecords } from '../api/answerSpeed';
 import { AnswerLogEntry, AnswerSpeedRecord, GameState, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import ScoreCard from '../components/ScoreCard';
+import SecretTrophyUnlock from '../components/SecretTrophyUnlock';
 import TimerDisplay from '../components/TimerDisplay';
 import LinearGraph from '../components/LinearGraph';
 import { normalizeReading } from '../utils/reading';
@@ -210,10 +211,8 @@ function QuestionChallenge() {
         setXpAfter(summary);
         const pointsSummary = await fetchPointsSummary();
         setPointsAfter(pointsSummary);
-        if (record.correct === record.total) {
-          const trophySummary = await fetchTrophySummary();
-          setTrophiesAfter(trophySummary);
-        }
+        // シークレットトロフィーは全問正解でなくても見つかるので、毎回取り直す。
+        setTrophiesAfter(await fetchTrophySummary());
         setSaveStatus('saved');
       } catch {
         setSaveStatus('failed');
@@ -297,6 +296,7 @@ function QuestionChallenge() {
                     </p>
                   </div>
                 )}
+                <SecretTrophyUnlock before={trophiesBefore} after={trophiesAfter} />
                 {state.correctCount === quiz.questions.length && (
                   <div className="trophy-result">
                     {(() => {

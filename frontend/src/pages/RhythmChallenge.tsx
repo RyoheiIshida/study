@@ -12,6 +12,7 @@ import { LaneChoice, buildLaneChoices } from '../utils/answerOptions';
 import { normalizeReading } from '../utils/reading';
 import NoteHighway, { LANE_COLORS } from '../components/NoteHighway';
 import LinearGraph from '../components/LinearGraph';
+import SecretTrophyUnlock from '../components/SecretTrophyUnlock';
 import { AudioEngine } from '../music/engine';
 import {
   DIFFICULTY_TIERS,
@@ -108,6 +109,7 @@ function RhythmChallenge() {
   const [pointsBefore, setPointsBefore] = useState<PointsSummary | null>(null);
   const [pointsAfter, setPointsAfter] = useState<PointsSummary | null>(null);
   const [trophiesBefore, setTrophiesBefore] = useState<TrophySummary | null>(null);
+  const [trophiesAfter, setTrophiesAfter] = useState<TrophySummary | null>(null);
 
   const [calibrating, setCalibrating] = useState(false);
   const [calibrationTaps, setCalibrationTaps] = useState(0);
@@ -268,6 +270,9 @@ function RhythmChallenge() {
     setSaveStatus('idle');
     setXpAfter(null);
     setPointsAfter(null);
+    // 続けてプレイするとき、前回見つけたシークレットトロフィーをまた「発見」と出さないよう基準を進める。
+    if (trophiesAfter) setTrophiesBefore(trophiesAfter);
+    setTrophiesAfter(null);
 
     engine.setVolume(settings.volume);
     engine.setOffsetMs(settings.offsetMs);
@@ -365,6 +370,7 @@ function RhythmChallenge() {
         await saveProgress(record);
         setXpAfter(await fetchXpSummary());
         setPointsAfter(await fetchPointsSummary());
+        setTrophiesAfter(await fetchTrophySummary());
         setSaveStatus('saved');
       } catch {
         setSaveStatus('failed');
@@ -547,6 +553,7 @@ function RhythmChallenge() {
                   </p>
                 </div>
               )}
+              <SecretTrophyUnlock before={trophiesBefore} after={trophiesAfter} />
               {correctCount === quiz.questions.length && (
                 <p className="feedback">🏆 {newTrophy ? '新しいトロフィーを獲得しました！' : '全問正解トロフィー獲得！'}</p>
               )}
