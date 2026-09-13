@@ -11,6 +11,7 @@ import Analytics from './pages/Analytics';
 import UserProfile from './pages/UserProfile';
 import FamilySettings from './pages/FamilySettings';
 import PurchaseRequests from './pages/PurchaseRequests';
+import ChildrenOverview, { ChildAnalytics } from './pages/ChildrenOverview';
 import { RequireAuth, useAuth } from './context/AuthContext';
 import { fetchXpSummary } from './api/xp';
 import { fetchPointsSummary } from './api/points';
@@ -22,6 +23,14 @@ const NAV_ITEMS = [
   { to: '/', icon: '📝', label: 'クイズ' },
   { to: '/progress', icon: '📈', label: '進捗' },
   { to: '/analytics', icon: '📊', label: '分析' },
+  { to: '/profile', icon: '👤', label: 'プロフィール' },
+  { to: '/purchase-requests', icon: '💰', label: 'おこづかい' },
+];
+
+// 親は自分の進捗より子供の様子を見に来るので、進捗・分析の代わりに見守りを置く。
+const PARENT_NAV_ITEMS = [
+  { to: '/', icon: '📝', label: 'クイズ' },
+  { to: '/children', icon: '👀', label: '見守り' },
   { to: '/profile', icon: '👤', label: 'プロフィール' },
   { to: '/purchase-requests', icon: '💰', label: 'おこづかい' },
 ];
@@ -79,7 +88,7 @@ function App() {
         {/* スマホ幅では CSS で画面下部の固定タブバーに切り替わる。 */}
         {user && (
           <nav className="nav-links" aria-label="メインナビゲーション">
-            {NAV_ITEMS.map((item) => (
+            {(user.role === 'PARENT' ? PARENT_NAV_ITEMS : NAV_ITEMS).map((item) => (
               <NavLink key={item.to} to={item.to}>
                 <span className="nav-icon" aria-hidden="true">{item.icon}</span>
                 <span className="nav-label">{item.label}</span>
@@ -123,6 +132,8 @@ function App() {
           <Route path="/analytics" element={<RequireAuth><Analytics /></RequireAuth>} />
           <Route path="/profile" element={<RequireAuth><UserProfile /></RequireAuth>} />
           <Route path="/family" element={<RequireAuth><FamilySettings /></RequireAuth>} />
+          <Route path="/children" element={<RequireAuth><ChildrenOverview /></RequireAuth>} />
+          <Route path="/children/:username" element={<RequireAuth><ChildAnalytics /></RequireAuth>} />
           <Route path="/purchase-requests" element={<RequireAuth><PurchaseRequests /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

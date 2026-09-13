@@ -1,5 +1,6 @@
 import { XpSummary } from '../types';
 import { TOKEN_KEY } from './auth';
+import { childQuery } from './childQuery';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 
@@ -12,8 +13,8 @@ function getAuthHeaders(): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function fetchXpSummary(): Promise<XpSummary> {
-  const response = await fetch(apiPath('/api/xp'), { headers: getAuthHeaders() });
+export async function fetchXpSummary(child?: string): Promise<XpSummary> {
+  const response = await fetch(apiPath(`/api/xp${childQuery(child)}`), { headers: getAuthHeaders() });
   if (!response.ok) {
     throw new Error(`API request failed: ${response.status}`);
   }

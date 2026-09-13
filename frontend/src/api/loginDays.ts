@@ -1,5 +1,6 @@
 import { LoginSummary } from '../types';
 import { TOKEN_KEY } from './auth';
+import { childQuery } from './childQuery';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 
@@ -24,8 +25,8 @@ export async function recordLoginDay(): Promise<LoginSummary> {
   return response.json();
 }
 
-export async function fetchLoginSummary(): Promise<LoginSummary> {
-  const response = await fetch(apiPath('/api/login-days'), { headers: getAuthHeaders() });
+export async function fetchLoginSummary(child?: string): Promise<LoginSummary> {
+  const response = await fetch(apiPath(`/api/login-days${childQuery(child)}`), { headers: getAuthHeaders() });
   if (!response.ok) {
     throw new Error(`API request failed: ${response.status}`);
   }

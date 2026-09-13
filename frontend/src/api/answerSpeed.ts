@@ -1,5 +1,6 @@
 import { AnswerSpeedRecord, AnswerSpeedTrendPoint } from '../types';
 import { TOKEN_KEY } from './auth';
+import { childQuery } from './childQuery';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 
@@ -24,8 +25,8 @@ export async function saveAnswerSpeedRecords(records: AnswerSpeedRecord[]): Prom
   }
 }
 
-export async function fetchAnswerSpeedTrend(): Promise<AnswerSpeedTrendPoint[]> {
-  const response = await fetch(apiPath('/api/answer-speed'), { headers: getAuthHeaders() });
+export async function fetchAnswerSpeedTrend(child?: string): Promise<AnswerSpeedTrendPoint[]> {
+  const response = await fetch(apiPath(`/api/answer-speed${childQuery(child)}`), { headers: getAuthHeaders() });
   if (!response.ok) {
     throw new Error(`API request failed: ${response.status}`);
   }

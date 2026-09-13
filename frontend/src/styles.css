@@ -1198,7 +1198,9 @@ body.solving-mode .challenge-panel {
     bottom: 0;
     left: 0;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    /* 子供は5つ、親は4つ。項目数に合わせて等分する。 */
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
     gap: 0;
     padding:
       0
@@ -1837,4 +1839,66 @@ body.solving-mode .challenge-panel {
   .graph-option-button:hover {
     transform: none;
   }
+}
+
+/* 見守り: 親が子供ごとの学習の様子を見るカード */
+.child-card { display: grid; gap: var(--space-4); }
+.child-card h3 { margin: 0; font-size: 1.35rem; }
+.child-level { margin-left: var(--space-2); color: var(--accent-dark); font-size: 0.95rem; font-weight: 900; }
+
+.child-card-header {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.child-card-header .tag { white-space: nowrap; }
+.child-stat-grid { margin-top: 0; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.child-stat-grid .stat-card { padding: var(--space-3) var(--space-4); gap: var(--space-1); }
+.child-stat-grid .stat-card strong { font-size: 1.5rem; }
+.child-stat-grid .stat-card small { margin-top: 0; }
+
+.week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.week-day {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  padding: var(--space-2) 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fffaf0;
+  color: var(--muted);
+}
+
+.week-day-label { font-size: 0.78rem; font-weight: 800; }
+.week-day-count { font-weight: 900; font-size: 0.95rem; }
+.week-day-count small { font-size: 0.68rem; font-weight: 800; }
+.week-day-on { background: #e4f1ed; border-color: var(--accent); color: var(--accent-dark); }
+.week-day-today { box-shadow: inset 0 0 0 2px var(--gold); }
+
+.child-recent ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.child-recent li {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (max-width: 560px) {
+  /* スマホでは5枚のカードが縦に長く並ぶので、2列に詰める。 */
+  .child-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .child-card > .button { width: 100%; }
 }

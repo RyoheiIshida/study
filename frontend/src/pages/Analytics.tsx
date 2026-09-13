@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
 import { fetchXpSummary } from '../api/xp';
 import { fetchAnswerSpeedTrend } from '../api/answerSpeed';
@@ -16,7 +17,12 @@ import {
 import { subjectLabel } from '../utils/labels';
 import SpeedTrendChart from '../components/SpeedTrendChart';
 
-function Analytics() {
+interface AnalyticsProps {
+  /** 親が連携済みの子供の分析を見るときに、その子のユーザー名を渡す。省略時は本人の分析。 */
+  child?: string;
+}
+
+function Analytics({ child }: AnalyticsProps) {
   const [records, setRecords] = useState<ProgressRecord[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
@@ -26,16 +32,23 @@ function Analytics() {
   const [speedError, setSpeedError] = useState(false);
   const [loginSummary, setLoginSummary] = useState<LoginSummary | null>(null);
   const [loginError, setLoginError] = useState(false);
+  const [progressError, setProgressError] = useState(false);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [quizData, progressData] = await Promise.all([fetchQuizzes(), fetchProgress()]);
-      setQuizzes(quizData);
-      setRecords(progressData);
+      try {
+        const [quizData, progressData] = await Promise.all([fetchQuizzes(), fetchProgress(child)]);
+        setQuizzes(quizData);
+        setRecords(progressData);
+        setProgressError(false);
+      } catch {
+        setRecords([]);
+        setProgressError(true);
+      }
 
       try {
-        setXpSummary(await fetchXpSummary());
+        setXpSummary(await fetchXpSummary(child));
         setXpError(false);
       } catch {
         setXpSummary(null);
@@ -43,7 +56,7 @@ function Analytics() {
       }
 
       try {
-        setSpeedTrend(await fetchAnswerSpeedTrend());
+        setSpeedTrend(await fetchAnswerSpeedTrend(child));
         setSpeedError(false);
       } catch {
         setSpeedTrend([]);
@@ -51,7 +64,7 @@ function Analytics() {
       }
 
       try {
-        setLoginSummary(await fetchLoginSummary());
+        setLoginSummary(await fetchLoginSummary(child));
         setLoginError(false);
       } catch {
         setLoginSummary(null);
@@ -62,7 +75,7 @@ function Analytics() {
     }
 
     load();
-  }, []);
+  }, [child]);
 
   const trend = useMemo(() => buildTrend(records, quizzes), [records, quizzes]);
   const subjects = useMemo(() => buildSubjectSummary(records, quizzes), [records, quizzes]);
@@ -80,9 +93,13 @@ function Analytics() {
   return (
     <section className="page-stack">
       <div className="panel">
+        {child && (
+          <p><Link to="/children" className="text-link">← 見守りに戻る</Link></p>
+        )}
         <p className="eyebrow">分析</p>
-        <h2>学習の傾向</h2>
+        <h2>{child ? `${child} さんの学習の傾向` : '学習の傾向'}</h2>
         <p>これまでに完了したクイズの正答率、連続正解数、科目バランスを表示します。</p>
+        {progressError && <p className="feedback-error" role="alert">クイズの記録を取得できませんでした。時間をおいて再度お試しください。</p>}
         {xpError && <p className="feedback-error" role="alert">経験値データを取得できませんでした。時間をおいて再度お試しください。</p>}
         <div className="stat-grid">
           <div className="stat-card">

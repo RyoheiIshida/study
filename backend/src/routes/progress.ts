@@ -1,14 +1,15 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { resolveViewTarget } from '../middleware/viewTarget.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 
 const router = Router();
 router.use(requireAuth);
 
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', resolveViewTarget, asyncHandler(async (req, res) => {
   const records = await prisma.progressRecord.findMany({
-    where: { username: req.user!.username },
+    where: { username: req.targetUsername! },
     orderBy: { lastPlayed: 'desc' },
   });
   res.json(records);

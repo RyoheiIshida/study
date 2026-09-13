@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { resolveViewTarget } from '../middleware/viewTarget.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 
@@ -57,9 +58,9 @@ router.post('/', asyncHandler(async (req, res) => {
   res.status(201).json({ saved: valid.length });
 }));
 
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', resolveViewTarget, asyncHandler(async (req, res) => {
   const records = await prisma.answerRecord.findMany({
-    where: { username: req.user!.username },
+    where: { username: req.targetUsername! },
     orderBy: { answeredAt: 'asc' },
   });
 
