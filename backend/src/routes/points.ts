@@ -3,26 +3,30 @@ import { requireAuth } from '../middleware/auth.js';
 import { resolveViewTarget } from '../middleware/viewTarget.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
-import { computeAttemptPoints, computeTotalPoints } from '../lib/points.js';
+import { computeEarnedPoints } from '../lib/points.js';
+import { jstMonthRange } from '../lib/exchangeLimit.js';
 
 const router = Router();
 router.use(requireAuth);
 
 router.get('/', resolveViewTarget, asyncHandler(async (req, res) => {
-  const attempts = await prisma.quizAttempt.findMany({
-    where: { username: req.targetUsername! },
-  });
-
-  const totalPoints = await computeTotalPoints(req.targetUsername!);
-  let totalCorrect = 0;
-  for (const attempt of attempts) {
-    totalCorrect += attempt.correct;
-  }
+  const username = req.targetUsername!;
+  const { start, end } = jstMonthRange(new Date());
+  const [totalPoints, monthlyEarnedPoints, correct] = await Promise.all([
+    computeEarnedPoints(username),
+    computeEarnedPoints(username, { start, end }),
+    prisma.quizAttempt.aggregate({
+      where: { username },
+      _sum: { correct: true },
+      _count: true,
+    }),
+  ]);
 
   res.json({
     totalPoints,
-    totalCorrect,
-    totalAttempts: attempts.length,
+    totalCorrect: correct._sum.correct ?? 0,
+    totalAttempts: correct._count,
+    monthlyEarnedPoints,
   });
 }));
 

@@ -7,6 +7,7 @@ import { isRhythmEligible } from '../music/chart';
 import { playPath } from '../utils/playMode';
 import { usePlayMode } from '../hooks/usePlayMode';
 import PlayModeToggle from '../components/PlayModeToggle';
+import RewardBadge from '../components/RewardBadge';
 
 interface LevelEntry {
   member: QuizGroupMember;
@@ -120,8 +121,10 @@ function DifficultySelect() {
                     <div>
                       <span className="level-name">{member.name}</span>
                       <span className="level-meta">
+                        {quiz.reward && <RewardBadge reward={quiz.reward} />}
                         {choices && <span>{choices}択</span>}
-                        <span>{Math.min(quiz.questions.length, getSessionQuestionLimit(quiz.id))}問</span>                        {record && <span>前回 {record.correct}/{record.total}</span>}
+                        <span>{Math.min(quiz.questions.length, getSessionQuestionLimit(quiz.id))}問</span>
+                        {record && <span>前回 {record.correct}/{record.total}</span>}
                         {isNext && <span className="tag">次はここ</span>}
                         {playMode === 'rhythm' && !isRhythmEligible(quiz) && <span>通常モードのみ</span>}
                       </span>

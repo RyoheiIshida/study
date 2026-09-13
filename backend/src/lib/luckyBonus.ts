@@ -26,17 +26,22 @@ const NO_BONUS: LuckyBonus = { tier: null, multiplier: 1, bonusXp: 0 };
  * クイズ1回ごとに引くラッキーボーナスの抽選。
  *
  * 倍率がかかるのは正解数ぶんの XP だけなので、当たっても正解が多いほど得をする。
+ * 難しいクイズは1問あたりの XP（xpPerCorrect）が多いので、当たりの XP も大きくなる。
  * 1問も正解していないときは抽選しない（適当に押しても当たりが出ないように）。
  * ポイントはおこづかいに換わるため、ランダム要素はポイントには入れず XP だけにとどめる。
  */
-export function rollLuckyBonus(correct: number, random: () => number = Math.random): LuckyBonus {
+export function rollLuckyBonus(
+  correct: number,
+  xpPerCorrect: number,
+  random: () => number = Math.random,
+): LuckyBonus {
   if (correct <= 0) return NO_BONUS;
   const roll = random();
   let threshold = 0;
   for (const definition of LUCKY_TIERS) {
     threshold += definition.chance;
     if (roll < threshold) {
-      const baseXp = correct * 10;
+      const baseXp = correct * xpPerCorrect;
       return {
         tier: definition.tier,
         multiplier: definition.multiplier,

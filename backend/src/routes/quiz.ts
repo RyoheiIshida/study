@@ -1,8 +1,14 @@
 import { Router } from 'express';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
+import { rewardRuleFor } from '../lib/difficulty.js';
 
 const router = Router();
+
+// 難易度ごとの1問あたりの報酬を添えて返す。画面で「難しいほど多くもらえる」ことを見せるため。
+function withReward<T extends { id: string; grade: string }>(quiz: T) {
+  return { ...quiz, reward: rewardRuleFor(quiz.id, quiz.grade) };
+}
 
 router.get('/', asyncHandler(async (req, res) => {
   const quizzes = await prisma.quiz.findMany({
@@ -13,7 +19,7 @@ router.get('/', asyncHandler(async (req, res) => {
     },
     orderBy: { createdAt: 'desc' },
   });
-  res.json(quizzes);
+  res.json(quizzes.map(withReward));
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
@@ -31,7 +37,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
     return;
   }
 
-  res.json(quiz);
+  res.json(withReward(quiz));
 }));
 
 router.post('/', asyncHandler(async (req, res) => {

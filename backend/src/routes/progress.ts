@@ -4,6 +4,7 @@ import { resolveViewTarget } from '../middleware/viewTarget.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 import { rollLuckyBonus } from '../lib/luckyBonus.js';
+import { rewardRuleFor } from '../lib/difficulty.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -32,6 +33,27 @@ router.post('/', asyncHandler(async (req, res) => {
     return;
   }
 
+  // 正解数はポイント（おこづかい）と XP に直結するので、送られてきた値をそのまま信じずクイズの問題数と照らし合わせる。
+  const quiz = await prisma.quiz.findUnique({
+    where: { id: record.quizId },
+    select: { grade: true, _count: { select: { questions: true } } },
+  });
+  const streak = record.streak ?? 0;
+  const completed = record.completed ?? 0;
+  const isCount = (value: number) => Number.isInteger(value) && value >= 0;
+  if (
+    !quiz ||
+    ![record.total, record.correct, streak, completed].every(isCount) ||
+    record.total < 1 ||
+    record.total > quiz._count.questions ||
+    record.correct > record.total ||
+    completed > record.total ||
+    streak > record.correct
+  ) {
+    res.status(400).json({ message: 'Invalid progress payload' });
+    return;
+  }
+
   // Sessions saved by an older client, or before duration tracking existed,
   // carry no duration rather than a misleading zero.
   const durationMs =
@@ -42,15 +64,16 @@ router.post('/', asyncHandler(async (req, res) => {
   const payload = {
     username: req.user!.username,
     quizId: record.quizId,
-    completed: record.completed ?? 0,
+    completed,
     total: record.total,
     correct: record.correct,
-    streak: record.streak ?? 0,
-    lastPlayed: record.lastPlayed ? new Date(record.lastPlayed) : new Date(),
+    streak,
+    // 交換できるポイントは「その月に獲得したぶん」なので、端末から送られた日時ではなくサーバーの時刻で記録する。
+    lastPlayed: new Date(),
   };
 
   // 抽選はサーバーで行い、結果を記録に残す。クライアントから当たりを指定することはできない。
-  const luckyBonus = rollLuckyBonus(payload.correct);
+  const luckyBonus = rollLuckyBonus(payload.correct, rewardRuleFor(payload.quizId, quiz.grade).xpPerCorrect);
 
   const [saved] = await prisma.$transaction([
     prisma.progressRecord.upsert({

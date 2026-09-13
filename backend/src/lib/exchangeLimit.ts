@@ -1,6 +1,6 @@
 import { prisma } from '../db.js';
 import { computeAttemptXp, getLevelProgress } from './leveling.js';
-import { LOCKED_STATUSES } from './points.js';
+import { LOCKED_STATUSES, computeEarnedPoints } from './points.js';
 
 export interface ExchangeTier {
   level: number;
@@ -10,14 +10,18 @@ export interface ExchangeTier {
 /**
  * Monthly exchange allowance per level. A child cannot exchange at all below
  * the first tier, and each tier raises the cash they may request in a month.
+ * The top tier is kept at 1,000 yen so the app stays a small bonus on top of
+ * a middle schooler's regular allowance rather than replacing it.
  */
 export const MONTHLY_LIMIT_TIERS: ExchangeTier[] = [
-  { level: 3, monthlyLimit: 300 },
-  { level: 5, monthlyLimit: 500 },
-  { level: 8, monthlyLimit: 1000 },
-  { level: 12, monthlyLimit: 2000 },
-  { level: 16, monthlyLimit: 3000 },
+  { level: 5, monthlyLimit: 300 },
+  { level: 10, monthlyLimit: 500 },
+  { level: 15, monthlyLimit: 700 },
+  { level: 20, monthlyLimit: 1000 },
 ];
+
+/** Points can only be exchanged in multiples of this, so rounding a tiny request up never pays extra. */
+export const EXCHANGE_POINT_UNIT = 100;
 
 export const EXCHANGE_UNLOCK_LEVEL = MONTHLY_LIMIT_TIERS[0].level;
 
@@ -47,11 +51,14 @@ export function jstMonthRange(now: Date) {
 }
 
 export async function computeTotalXp(username: string): Promise<number> {
-  const attempts = await prisma.quizAttempt.findMany({ where: { username } });
+  const attempts = await prisma.quizAttempt.findMany({
+    where: { username },
+    include: { quiz: { select: { grade: true } } },
+  });
   return attempts.reduce((sum, attempt) => sum + computeAttemptXp(attempt), 0);
 }
 
-export async function computeMonthlyExchangedCash(username: string, now: Date): Promise<number> {
+export async function computeMonthlyExchanged(username: string, now: Date) {
   const { start, end } = jstMonthRange(now);
   const exchanged = await prisma.purchaseRequest.aggregate({
     where: {
@@ -59,9 +66,9 @@ export async function computeMonthlyExchangedCash(username: string, now: Date): 
       status: { in: LOCKED_STATUSES },
       requestedAt: { gte: start, lt: end },
     },
-    _sum: { cashAmount: true },
+    _sum: { cashAmount: true, pointsCost: true },
   });
-  return exchanged._sum.cashAmount ?? 0;
+  return { cash: exchanged._sum.cashAmount ?? 0, points: exchanged._sum.pointsCost ?? 0 };
 }
 
 export interface ExchangeLimitInfo {
@@ -72,6 +79,14 @@ export interface ExchangeLimitInfo {
   monthlyLimit: number;
   monthlyUsed: number;
   monthlyRemaining: number;
+  /** 今月プレイして獲得したポイント。 */
+  monthlyEarnedPoints: number;
+  /**
+   * 今月交換に回せるポイント。今月獲得したぶんから今月すでに申請したぶんを引いたもの。
+   * 先月までに貯めたポイントは残高には残るが、交換には使えない。
+   * 一度たくさん貯めれば勉強しなくても毎月満額を交換できる、ということがないようにするため。
+   */
+  monthlyExchangeablePoints: number;
   nextTier: ExchangeTier | null;
   tiers: ExchangeTier[];
 }
@@ -80,8 +95,11 @@ export async function computeExchangeLimit(username: string, now = new Date()): 
   const totalXp = await computeTotalXp(username);
   const { level } = getLevelProgress(totalXp);
   const monthlyLimit = monthlyLimitForLevel(level);
-  const { month } = jstMonthRange(now);
-  const monthlyUsed = await computeMonthlyExchangedCash(username, now);
+  const { month, start, end } = jstMonthRange(now);
+  const [monthlyExchanged, monthlyEarnedPoints] = await Promise.all([
+    computeMonthlyExchanged(username, now),
+    computeEarnedPoints(username, { start, end }),
+  ]);
 
   return {
     level,
@@ -89,8 +107,10 @@ export async function computeExchangeLimit(username: string, now = new Date()): 
     unlocked: level >= EXCHANGE_UNLOCK_LEVEL,
     month,
     monthlyLimit,
-    monthlyUsed,
-    monthlyRemaining: Math.max(monthlyLimit - monthlyUsed, 0),
+    monthlyUsed: monthlyExchanged.cash,
+    monthlyRemaining: Math.max(monthlyLimit - monthlyExchanged.cash, 0),
+    monthlyEarnedPoints,
+    monthlyExchangeablePoints: Math.max(monthlyEarnedPoints - monthlyExchanged.points, 0),
     nextTier: nextTierForLevel(level),
     tiers: MONTHLY_LIMIT_TIERS,
   };

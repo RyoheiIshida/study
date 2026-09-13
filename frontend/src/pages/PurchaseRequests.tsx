@@ -69,8 +69,9 @@ function PurchaseRequests() {
     event.preventDefault();
     setActionError('');
     const parsed = Number(pointsCost);
-    if (!Number.isInteger(parsed) || parsed <= 0) {
-      setActionError('ポイント数は1以上の整数で入力してください。');
+    const unit = rateInfo?.pointUnit ?? 1;
+    if (!Number.isInteger(parsed) || parsed <= 0 || parsed % unit !== 0) {
+      setActionError(`ポイント数は${unit}pt単位で入力してください。`);
       return;
     }
     setIsSubmitting(true);
@@ -102,6 +103,9 @@ function PurchaseRequests() {
 
   const limit = rateInfo?.limit ?? null;
   const isOverMonthlyLimit = limit !== null && previewCash !== null && previewCash > limit.monthlyRemaining;
+  // 先月までに貯めたポイントは交換に使えないので、残高と今月獲得したぶんの小さいほうが上限になる。
+  const exchangeablePoints = rateInfo && limit ? Math.min(rateInfo.availablePoints, limit.monthlyExchangeablePoints) : 0;
+  const isOverExchangeablePoints = previewCash !== null && Number(pointsCost) > exchangeablePoints;
 
   return (
     <section className="page-stack">
@@ -119,12 +123,16 @@ function PurchaseRequests() {
               <strong>1pt = {rateInfo.rate}円</strong>
             </div>
             <div className="stat-card">
-              <span>直近の正答率</span>
+              <span>直近の正答率(難易度補正あり)</span>
               <strong>{Math.round(rateInfo.recentAccuracy * 100)}%</strong>
             </div>
             <div className="stat-card">
-              <span>交換可能ポイント</span>
+              <span>ポイント残高</span>
               <strong>{rateInfo.availablePoints}pt</strong>
+            </div>
+            <div className="stat-card">
+              <span>今月交換できるポイント</span>
+              <strong>{exchangeablePoints}pt</strong>
             </div>
             {limit.unlocked && (
               <div className="stat-card">
@@ -156,11 +164,15 @@ function PurchaseRequests() {
                 今月({limit.month})の交換: {limit.monthlyUsed}円 / {limit.monthlyLimit}円
                 {limit.nextTier && `(レベル${limit.nextTier.level}になると月${limit.nextTier.monthlyLimit}円まで)`}
               </p>
+              <p className="hint">
+                交換できるのは、今月クイズで獲得したポイント({limit.monthlyEarnedPoints}pt)までです。先月までのポイントは残高に残りますが、交換には使えません。
+              </p>
               <label>
-                交換するポイント数
+                交換するポイント数({rateInfo.pointUnit}pt単位)
                 <input
                   type="number"
-                  min={1}
+                  min={rateInfo.pointUnit}
+                  step={rateInfo.pointUnit}
                   value={pointsCost}
                   onChange={(e) => setPointsCost(e.target.value)}
                   required
@@ -176,8 +188,13 @@ function PurchaseRequests() {
                   今月の残り枠は{limit.monthlyRemaining}円です。ポイント数を減らすか、来月まで待ってね。
                 </p>
               )}
+              {isOverExchangeablePoints && (
+                <p className="feedback-error" role="alert">
+                  今月交換できるのはあと{exchangeablePoints}ptです。今月もクイズを解いてポイントを集めよう!
+                </p>
+              )}
               {actionError && <p className="feedback-error" role="alert">{actionError}</p>}
-              <button className="button" type="submit" disabled={isSubmitting || isOverMonthlyLimit}>
+              <button className="button" type="submit" disabled={isSubmitting || isOverMonthlyLimit || isOverExchangeablePoints}>
                 {isSubmitting ? '申請中...' : '申請する'}
               </button>
             </form>

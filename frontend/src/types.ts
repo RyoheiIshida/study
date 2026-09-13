@@ -44,6 +44,19 @@ export interface Quiz {
   description: string;
   questions: Question[];
   createdAt?: string;
+  /** サーバーが決める難易度ごとの報酬。端末に保存したクイズ（API に届かないとき）には付かない。 */
+  reward?: RewardRule;
+}
+
+export type DifficultyTier = 'basic' | 'star1' | 'star2' | 'star3';
+
+export interface RewardRule {
+  tier: DifficultyTier;
+  stars: number;
+  label: string;
+  xpPerCorrect: number;
+  pointsPerCorrect: number;
+  accuracyBonus: number;
 }
 
 export interface ProgressRecord {
@@ -113,6 +126,7 @@ export interface PointsSummary {
   totalPoints: number;
   totalCorrect: number;
   totalAttempts: number;
+  monthlyEarnedPoints: number;
 }
 
 /** トロフィーの希少度。低いものから順に common → rare → epic → legendary。 */
@@ -179,6 +193,8 @@ export interface ExchangeLimitInfo {
   monthlyLimit: number;
   monthlyUsed: number;
   monthlyRemaining: number;
+  monthlyEarnedPoints: number;
+  monthlyExchangeablePoints: number;
   nextTier: ExchangeTier | null;
   tiers: ExchangeTier[];
 }
@@ -187,6 +203,7 @@ export interface ExchangeRateInfo {
   rate: number;
   recentAccuracy: number;
   availablePoints: number;
+  pointUnit: number;
   limit: ExchangeLimitInfo;
 }
 

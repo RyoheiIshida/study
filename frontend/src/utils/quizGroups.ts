@@ -60,6 +60,7 @@ export const quizGroups: QuizGroup[] = [
     ],
     // 各タブの中は「2本だけを見比べる2択 → いろいろな数の2択 → 2択をぜんぶ混ぜたロング → 4択」の順に並べる。
     // ロングは短い2択より難しく、4択の手前の仕上げに当たる。
+    // 段階ごとの報酬（★の数）は backend/src/lib/difficulty.ts で決めている。段階を足したら向こうも更新すること。
     members: [
       { quizId: 'linear-graph-pair-slope-1-half', difficultyLabel: '傾き 1と1/2', order: 1, track: 'slope', name: '1 と 1/2' },
       { quizId: 'linear-graph-pair-slope-1-2', difficultyLabel: '傾き 1と2', order: 2, track: 'slope', name: '1 と 2' },

@@ -31,7 +31,7 @@ router.get('/today', asyncHandler(async (req, res) => {
     prisma.quizAttempt.findMany({
       where: { username, playedAt: { gte: startUtc, lt: endUtc } },
     }),
-    prisma.quizAttempt.findMany({ where: { username } }),
+    prisma.quizAttempt.findMany({ where: { username }, include: { quiz: { select: { grade: true } } } }),
   ]);
 
   const stats: QuestStats = {
