@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigationType } from 'react-router-dom';
 import QuizList from './pages/QuizList';
 import DifficultySelect from './pages/DifficultySelect';
 import QuestionChallenge from './pages/QuestionChallenge';
@@ -29,8 +29,19 @@ const NAV_ITEMS = [
 function App() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigationType = useNavigationType();
   const [xpSummary, setXpSummary] = useState<XpSummary | null>(null);
   const [pointsSummary, setPointsSummary] = useState<PointsSummary | null>(null);
+
+  // SPA ではページを移動してもスクロール位置が残り、一覧の下の方で「開始」を押すと
+  // 次の画面も下までスクロールされた状態で開いてしまう。リンクで移動したときは先頭に戻す。
+  // 「戻る」（POP）ではブラウザが元の位置を復元するので触らない。
+  // クエリだけの変更（難易度選択のタブ切り替えなど）ではスクロールさせないよう pathname だけを見る。
+  useEffect(() => {
+    if (navigationType !== 'POP') {
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!user) {
