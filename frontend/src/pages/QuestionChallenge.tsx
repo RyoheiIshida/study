@@ -9,6 +9,7 @@ import { AnswerLogEntry, AnswerSpeedRecord, GameState, LuckyBonus, PointsSummary
 import ScoreCard from '../components/ScoreCard';
 import LuckyBonusReveal from '../components/LuckyBonusReveal';
 import SecretTrophyUnlock from '../components/SecretTrophyUnlock';
+import PerfectTrophyResult from '../components/PerfectTrophyResult';
 import TimerDisplay from '../components/TimerDisplay';
 import LinearGraph from '../components/LinearGraph';
 import { normalizeReading } from '../utils/reading';
@@ -303,16 +304,7 @@ function QuestionChallenge() {
                 )}
                 <SecretTrophyUnlock before={trophiesBefore} after={trophiesAfter} />
                 {state.correctCount === quiz.questions.length && (
-                  <div className="trophy-result">
-                    {(() => {
-                      const isNewTrophy = trophiesAfter && !trophiesBefore?.trophies.some((t) => t.quizId === quiz.id);
-                      return (
-                        <p className="feedback">
-                          🏆 {isNewTrophy ? '新しいトロフィーを獲得しました！' : '全問正解トロフィー獲得！'}
-                        </p>
-                      );
-                    })()}
-                  </div>
+                  <PerfectTrophyResult quizId={quiz.id} before={trophiesBefore} after={trophiesAfter} />
                 )}
               </>
             )}

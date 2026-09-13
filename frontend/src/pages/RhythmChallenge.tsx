@@ -13,6 +13,7 @@ import { normalizeReading } from '../utils/reading';
 import NoteHighway, { LANE_COLORS } from '../components/NoteHighway';
 import LinearGraph from '../components/LinearGraph';
 import SecretTrophyUnlock from '../components/SecretTrophyUnlock';
+import PerfectTrophyResult from '../components/PerfectTrophyResult';
 import LuckyBonusReveal from '../components/LuckyBonusReveal';
 import { AudioEngine } from '../music/engine';
 import {
@@ -510,7 +511,6 @@ function RhythmChallenge() {
   }
 
   if (phase === 'finished') {
-    const newTrophy = correctCount === quiz.questions.length && !trophiesBefore?.trophies.some((t) => t.quizId === quiz.id);
     return (
       <section className="page-stack">
         <div className="panel result-card">
@@ -560,7 +560,7 @@ function RhythmChallenge() {
               )}
               <SecretTrophyUnlock before={trophiesBefore} after={trophiesAfter} />
               {correctCount === quiz.questions.length && (
-                <p className="feedback">🏆 {newTrophy ? '新しいトロフィーを獲得しました！' : '全問正解トロフィー獲得！'}</p>
+                <PerfectTrophyResult quizId={quiz.id} before={trophiesBefore} after={trophiesAfter} />
               )}
             </>
           )}

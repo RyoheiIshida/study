@@ -2013,3 +2013,89 @@ body.solving-mode .challenge-panel {
   .lucky-bonus,
   .lucky-miracle .lucky-bonus-icon { animation: none; }
 }
+
+/* トロフィーの希少度：ノーマル→レア→スーパーレア→レジェンドの順に、色と演出を強くする */
+.rarity-badge {
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  /* カードは隣のカードの高さにそろえて伸びるので、バッジまで縦に伸びないようにする */
+  place-self: center;
+  line-height: 1.6;
+  padding: 0 var(--space-2);
+  white-space: nowrap;
+}
+
+.rarity-badge-common { color: var(--muted); }
+.rarity-badge-rare { color: #2f64b3; }
+.rarity-badge-epic { color: #7a45b0; }
+.rarity-badge-legendary { color: #a86b00; }
+
+/* スマホ2列のシークレットトロフィーでは幅が足りないので、星を省いて名前と色だけで見せる */
+.secret-grid .rarity-stars { display: none; }
+
+.rarity-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+
+.rarity-count {
+  background: var(--paper);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  padding: 2px var(--space-3);
+}
+
+.trophy-progress { font-size: var(--text-sm); font-weight: 700; }
+
+.trophy-card.rarity-common:not(.secret-card) {
+  background: #f7f5ef;
+  border-color: var(--line);
+}
+
+.rarity-rare {
+  background: #eaf1fb;
+  border-color: #8fb1e3;
+}
+
+.rarity-epic {
+  background: #f4ecfb;
+  border-color: #b48ad8;
+  box-shadow: 0 0 0 3px rgba(160, 110, 210, 0.16);
+}
+
+.rarity-legendary {
+  animation: rarity-shimmer 4s ease-in-out infinite;
+  background: linear-gradient(120deg, #fff1c9, #fffaf0 40%, #ffe3a3 60%, #fff4d6);
+  background-size: 250% 100%;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(217, 154, 43, 0.22);
+}
+
+.secret-unlock-name { display: block; margin-top: var(--space-1); }
+
+.trophy-result .rarity-badge { display: inline-block; }
+.trophy-result .hint { margin: var(--space-1) 0 0; }
+
+/* 獲得・進化した瞬間だけポップさせる */
+.rarity-reveal { animation: secret-unlock-pop 480ms ease-out; }
+.rarity-reveal.rarity-legendary {
+  animation: secret-unlock-pop 480ms ease-out, rarity-shimmer 4s ease-in-out 480ms infinite;
+}
+
+@keyframes rarity-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rarity-legendary,
+  .rarity-reveal,
+  .rarity-reveal.rarity-legendary { animation: none; }
+}
