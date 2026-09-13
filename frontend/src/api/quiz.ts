@@ -1,5 +1,6 @@
 import { Grade, ProgressRecord, Question, Quiz, Subject } from '../types';
 import { TOKEN_KEY } from './auth';
+import { childQuery } from './childQuery';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 const STORAGE_KEY = 'study-app-quizzes';
@@ -766,7 +767,13 @@ export async function saveProgress(record: ProgressRecord): Promise<ProgressReco
   }
 }
 
-export async function fetchProgress(): Promise<ProgressRecord[]> {
+export async function fetchProgress(child?: string): Promise<ProgressRecord[]> {
+  // 端末に残っているのはこの端末で遊んだ本人の記録なので、子供の記録を見るときは使わずにエラーを返す。
+  if (child) {
+    return fetchJson<ProgressRecord[]>(`/api/progress${childQuery(child)}`, {
+      headers: getAuthHeaders(),
+    });
+  }
   try {
     return await fetchJson<ProgressRecord[]>('/api/progress', {
       headers: getAuthHeaders(),

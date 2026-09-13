@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { resolveViewTarget } from '../middleware/viewTarget.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 import { computeAttemptXp, getLevelProgress } from '../lib/leveling.js';
@@ -14,9 +15,9 @@ function jstDateKey(date: Date) {
   return jst.toISOString().slice(0, 10);
 }
 
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', resolveViewTarget, asyncHandler(async (req, res) => {
   const attempts = await prisma.quizAttempt.findMany({
-    where: { username: req.user!.username },
+    where: { username: req.targetUsername! },
     orderBy: { playedAt: 'asc' },
   });
 
