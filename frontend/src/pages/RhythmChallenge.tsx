@@ -552,7 +552,7 @@ function RhythmChallenge() {
               )}
             </>
           )}
-          {saveStatus === 'failed' && <p className="feedback">進捗を保存できませんでした。API接続を確認してください。</p>}
+          {saveStatus === 'failed' && <p className="feedback-error" role="alert">進捗を保存できませんでした。API接続を確認してください。</p>}
 
           <div className="answer-review">
             <p className="eyebrow">復習</p>

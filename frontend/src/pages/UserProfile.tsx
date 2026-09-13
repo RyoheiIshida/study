@@ -71,7 +71,7 @@ function UserProfile() {
 
       {summaryError && (
         <div className="panel">
-          <p className="feedback">レベル・ポイント・トロフィーを取得できませんでした。時間をおいて再度お試しください。</p>
+          <p className="feedback-error" role="alert">レベル・ポイント・トロフィーを取得できませんでした。時間をおいて再度お試しください。</p>
         </div>
       )}
 

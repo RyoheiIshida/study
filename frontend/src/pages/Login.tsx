@@ -41,7 +41,7 @@ function Login() {
             パスワード
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </label>
-          {error && <p className="feedback">{error}</p>}
+          {error && <p className="feedback-error" role="alert">{error}</p>}
           <button type="submit" className="button" disabled={isSubmitting}>
             {isSubmitting ? 'ログイン中...' : 'ログイン'}
           </button>

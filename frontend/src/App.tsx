@@ -18,6 +18,14 @@ import { PointsSummary, XpSummary } from './types';
 import LevelBadge from './components/LevelBadge';
 import PointsBadge from './components/PointsBadge';
 
+const NAV_ITEMS = [
+  { to: '/', icon: '📝', label: 'クイズ' },
+  { to: '/progress', icon: '📈', label: '進捗' },
+  { to: '/analytics', icon: '📊', label: '分析' },
+  { to: '/profile', icon: '👤', label: 'プロフィール' },
+  { to: '/purchase-requests', icon: '💰', label: 'おこづかい' },
+];
+
 function App() {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -51,37 +59,43 @@ function App() {
   }, [user, location.pathname]);
 
   return (
-    <div className="app-shell">
+    <div className={user ? 'app-shell has-bottom-nav' : 'app-shell'}>
       <header className="top-bar">
         <div className="brand-block">
           <Link to="/" className="brand-mark">クイズゲーム</Link>
           <p>進捗管理と復習をスムーズに行える、短時間クイズセッション。</p>
         </div>
-        <nav className="nav-links" aria-label="メインナビゲーション">
-          {user && (
-            <>
-              <NavLink to="/">クイズ</NavLink>
-              <NavLink to="/progress">進捗</NavLink>
-              <NavLink to="/analytics">分析</NavLink>
-              <NavLink to="/profile">プロフィール</NavLink>
-              <NavLink to="/purchase-requests">おこづかい</NavLink>
-            </>
-          )}
-        </nav>
+        {/* スマホ幅では CSS で画面下部の固定タブバーに切り替わる。 */}
+        {user && (
+          <nav className="nav-links" aria-label="メインナビゲーション">
+            {NAV_ITEMS.map((item) => (
+              <NavLink key={item.to} to={item.to}>
+                <span className="nav-icon" aria-hidden="true">{item.icon}</span>
+                <span className="nav-label">{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        )}
         <div className="auth-actions">
           {user ? (
             <>
-              <LevelBadge summary={xpSummary} />
-              <PointsBadge summary={pointsSummary} />
-              <span className="user-chip">{user.username}</span>
-              <button className="button secondary" type="button" onClick={logout}>
-                ログアウト
-              </button>
+              <div className="status-chips">
+                <LevelBadge summary={xpSummary} />
+                <PointsBadge summary={pointsSummary} />
+              </div>
+              <div className="account-actions">
+                <span className="user-chip">{user.username}</span>
+                <button className="button secondary" type="button" onClick={logout}>
+                  ログアウト
+                </button>
+              </div>
             </>
           ) : (
             <>
-              <Link to="/login" className="button secondary">ログイン</Link>
-              <Link to="/register" className="button">新規登録</Link>
+              <div className="account-actions">
+                <Link to="/login" className="button secondary">ログイン</Link>
+                <Link to="/register" className="button">新規登録</Link>
+              </div>
             </>
           )}
         </div>

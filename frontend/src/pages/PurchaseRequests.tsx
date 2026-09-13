@@ -108,7 +108,7 @@ function PurchaseRequests() {
       <div className="panel">
         <p className="eyebrow">おこづかい交換</p>
         <h2>ポイントを現金に交換する</h2>
-        {errorMessage && <p className="feedback">{errorMessage}</p>}
+        {errorMessage && <p className="feedback-error" role="alert">{errorMessage}</p>}
       </div>
 
       {isChild && rateInfo && limit && (
@@ -172,11 +172,11 @@ function PurchaseRequests() {
               </label>
               {previewCash !== null && <p className="hint">受け取り予定額: {previewCash}円</p>}
               {isOverMonthlyLimit && (
-                <p className="feedback">
+                <p className="feedback-error" role="alert">
                   今月の残り枠は{limit.monthlyRemaining}円です。ポイント数を減らすか、来月まで待ってね。
                 </p>
               )}
-              {actionError && <p className="feedback">{actionError}</p>}
+              {actionError && <p className="feedback-error" role="alert">{actionError}</p>}
               <button className="button" type="submit" disabled={isSubmitting || isOverMonthlyLimit}>
                 {isSubmitting ? '申請中...' : '申請する'}
               </button>

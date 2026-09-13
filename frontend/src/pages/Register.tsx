@@ -51,7 +51,7 @@ function Register() {
               親
             </label>
           </fieldset>
-          {error && <p className="feedback">{error}</p>}
+          {error && <p className="feedback-error" role="alert">{error}</p>}
           <button type="submit" className="button" disabled={isSubmitting}>
             {isSubmitting ? '作成中...' : '登録'}
           </button>

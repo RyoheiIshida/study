@@ -83,7 +83,7 @@ function Analytics() {
         <p className="eyebrow">分析</p>
         <h2>学習の傾向</h2>
         <p>これまでに完了したクイズの正答率、連続正解数、科目バランスを表示します。</p>
-        {xpError && <p className="feedback">経験値データを取得できませんでした。時間をおいて再度お試しください。</p>}
+        {xpError && <p className="feedback-error" role="alert">経験値データを取得できませんでした。時間をおいて再度お試しください。</p>}
         <div className="stat-grid">
           <div className="stat-card">
             <span>総合正答率</span>
@@ -131,7 +131,7 @@ function Analytics() {
             <p>アプリを開いた日は、問題を解かなくてもログイン日として記録されます。</p>
           </div>
         </div>
-        {loginError && <p className="feedback">ログイン記録を取得できませんでした。時間をおいて再度お試しください。</p>}
+        {loginError && <p className="feedback-error" role="alert">ログイン記録を取得できませんでした。時間をおいて再度お試しください。</p>}
         {loading ? (
           <p>ログイン記録を読み込み中...</p>
         ) : !loginSummary ? (
@@ -316,7 +316,7 @@ function Analytics() {
             <p>その日ごとの平均解答時間（秒）を難易度別に表示します。時間切れになった問題は含みません。</p>
           </div>
         </div>
-        {speedError && <p className="feedback">解答スピードのデータを取得できませんでした。時間をおいて再度お試しください。</p>}
+        {speedError && <p className="feedback-error" role="alert">解答スピードのデータを取得できませんでした。時間をおいて再度お試しください。</p>}
         {loading ? (
           <p>解答スピードを読み込み中...</p>
         ) : speedTrend.length === 0 ? (
