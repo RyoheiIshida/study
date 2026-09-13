@@ -126,8 +126,7 @@ export interface PointsSummary {
   totalPoints: number;
   totalCorrect: number;
   totalAttempts: number;
-  todayPoints: number;
-  dailyPointLimit: number;
+  monthlyEarnedPoints: number;
 }
 
 /** トロフィーの希少度。低いものから順に common → rare → epic → legendary。 */
@@ -194,6 +193,8 @@ export interface ExchangeLimitInfo {
   monthlyLimit: number;
   monthlyUsed: number;
   monthlyRemaining: number;
+  monthlyEarnedPoints: number;
+  monthlyExchangeablePoints: number;
   nextTier: ExchangeTier | null;
   tiers: ExchangeTier[];
 }

@@ -1,6 +1,6 @@
 import { prisma } from '../db.js';
 import { computeAttemptXp, getLevelProgress } from './leveling.js';
-import { LOCKED_STATUSES } from './points.js';
+import { LOCKED_STATUSES, computeEarnedPoints } from './points.js';
 
 export interface ExchangeTier {
   level: number;
@@ -58,7 +58,7 @@ export async function computeTotalXp(username: string): Promise<number> {
   return attempts.reduce((sum, attempt) => sum + computeAttemptXp(attempt), 0);
 }
 
-export async function computeMonthlyExchangedCash(username: string, now: Date): Promise<number> {
+export async function computeMonthlyExchanged(username: string, now: Date) {
   const { start, end } = jstMonthRange(now);
   const exchanged = await prisma.purchaseRequest.aggregate({
     where: {
@@ -66,9 +66,9 @@ export async function computeMonthlyExchangedCash(username: string, now: Date): 
       status: { in: LOCKED_STATUSES },
       requestedAt: { gte: start, lt: end },
     },
-    _sum: { cashAmount: true },
+    _sum: { cashAmount: true, pointsCost: true },
   });
-  return exchanged._sum.cashAmount ?? 0;
+  return { cash: exchanged._sum.cashAmount ?? 0, points: exchanged._sum.pointsCost ?? 0 };
 }
 
 export interface ExchangeLimitInfo {
@@ -79,6 +79,14 @@ export interface ExchangeLimitInfo {
   monthlyLimit: number;
   monthlyUsed: number;
   monthlyRemaining: number;
+  /** 今月プレイして獲得したポイント。 */
+  monthlyEarnedPoints: number;
+  /**
+   * 今月交換に回せるポイント。今月獲得したぶんから今月すでに申請したぶんを引いたもの。
+   * 先月までに貯めたポイントは残高には残るが、交換には使えない。
+   * 一度たくさん貯めれば勉強しなくても毎月満額を交換できる、ということがないようにするため。
+   */
+  monthlyExchangeablePoints: number;
   nextTier: ExchangeTier | null;
   tiers: ExchangeTier[];
 }
@@ -87,8 +95,11 @@ export async function computeExchangeLimit(username: string, now = new Date()): 
   const totalXp = await computeTotalXp(username);
   const { level } = getLevelProgress(totalXp);
   const monthlyLimit = monthlyLimitForLevel(level);
-  const { month } = jstMonthRange(now);
-  const monthlyUsed = await computeMonthlyExchangedCash(username, now);
+  const { month, start, end } = jstMonthRange(now);
+  const [monthlyExchanged, monthlyEarnedPoints] = await Promise.all([
+    computeMonthlyExchanged(username, now),
+    computeEarnedPoints(username, { start, end }),
+  ]);
 
   return {
     level,
@@ -96,8 +107,10 @@ export async function computeExchangeLimit(username: string, now = new Date()): 
     unlocked: level >= EXCHANGE_UNLOCK_LEVEL,
     month,
     monthlyLimit,
-    monthlyUsed,
-    monthlyRemaining: Math.max(monthlyLimit - monthlyUsed, 0),
+    monthlyUsed: monthlyExchanged.cash,
+    monthlyRemaining: Math.max(monthlyLimit - monthlyExchanged.cash, 0),
+    monthlyEarnedPoints,
+    monthlyExchangeablePoints: Math.max(monthlyEarnedPoints - monthlyExchanged.points, 0),
     nextTier: nextTierForLevel(level),
     tiers: MONTHLY_LIMIT_TIERS,
   };

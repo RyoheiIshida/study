@@ -68,7 +68,7 @@ router.post('/', asyncHandler(async (req, res) => {
     total: record.total,
     correct: record.correct,
     streak,
-    // 1日のポイント上限は日付で数えるので、端末から送られた日時ではなくサーバーの時刻で記録する。
+    // 交換できるポイントは「その月に獲得したぶん」なので、端末から送られた日時ではなくサーバーの時刻で記録する。
     lastPlayed: new Date(),
   };
 

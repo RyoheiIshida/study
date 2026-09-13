@@ -3,28 +3,30 @@ import { requireAuth } from '../middleware/auth.js';
 import { resolveViewTarget } from '../middleware/viewTarget.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
-import { DAILY_POINT_LIMIT, loadPointsLedger } from '../lib/points.js';
-import { jstDateKey } from '../lib/loginDays.js';
+import { computeEarnedPoints } from '../lib/points.js';
+import { jstMonthRange } from '../lib/exchangeLimit.js';
 
 const router = Router();
 router.use(requireAuth);
 
 router.get('/', resolveViewTarget, asyncHandler(async (req, res) => {
-  const [ledger, correct] = await Promise.all([
-    loadPointsLedger(req.targetUsername!),
+  const username = req.targetUsername!;
+  const { start, end } = jstMonthRange(new Date());
+  const [totalPoints, monthlyEarnedPoints, correct] = await Promise.all([
+    computeEarnedPoints(username),
+    computeEarnedPoints(username, { start, end }),
     prisma.quizAttempt.aggregate({
-      where: { username: req.targetUsername! },
+      where: { username },
       _sum: { correct: true },
       _count: true,
     }),
   ]);
 
   res.json({
-    totalPoints: ledger.totalPoints,
+    totalPoints,
     totalCorrect: correct._sum.correct ?? 0,
     totalAttempts: correct._count,
-    todayPoints: ledger.pointsByDay.get(jstDateKey(new Date())) ?? 0,
-    dailyPointLimit: DAILY_POINT_LIMIT,
+    monthlyEarnedPoints,
   });
 }));
 

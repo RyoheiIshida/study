@@ -15,8 +15,7 @@ export interface RewardRule {
 }
 
 // 難しいほど1問あたりの XP とポイントが増える。
-// ポイントは1日の上限（DAILY_POINT_LIMIT）があるので、難しいクイズを選ぶと少ない問題数で上限に届くが、
-// 1日・1か月にもらえる金額そのものは増えない。
+// ポイントはいくら増えてもよく、お金に換える量は交換の側（exchangeLimit.ts の月の上限と、その月に獲得したぶんまで）で抑える。
 // basic の XP を star1 と同じにしているのは、難易度を入れる前に貯めた XP（＝レベル）が減らないようにするため。
 export const REWARD_RULES: Record<DifficultyTier, RewardRule> = {
   basic: { tier: 'basic', stars: 0, label: 'きそ', xpPerCorrect: 10, pointsPerCorrect: 0, accuracyBonus: 0 },

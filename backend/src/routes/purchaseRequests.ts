@@ -45,6 +45,12 @@ router.post('/', requireRole(Role.CHILD), asyncHandler(async (req, res) => {
     });
   }
 
+  if (pointsCost > limit.monthlyExchangeablePoints) {
+    return res.status(400).json({
+      message: `交換できるのは今月獲得したポイントまでです。今月あと${limit.monthlyExchangeablePoints}pt交換できます。`,
+    });
+  }
+
   const recentAccuracy = await computeRecentAccuracy(child.username);
   const rate = computeExchangeRate(recentAccuracy);
   const cashAmount = Math.round(pointsCost * rate);
