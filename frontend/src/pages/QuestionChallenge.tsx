@@ -15,7 +15,7 @@ import TimerDisplay from '../components/TimerDisplay';
 import LinearGraph from '../components/LinearGraph';
 import { normalizeReading } from '../utils/reading';
 import { pickSessionQuestions } from '../utils/shuffle';
-import { getDifficultyLabel, getSessionQuestionLimit } from '../utils/quizGroups';
+import { findNextQuizId, getDifficultyLabel, getSessionQuestionLimit } from '../utils/quizGroups';
 import { buildAnswerOptions, getAnswerValue } from '../utils/answerOptions';
 
 const QUESTION_SECONDS = 30;
@@ -57,6 +57,7 @@ function QuestionChallenge() {
   const sessionStartRef = useRef<number | null>(null);
   const answerScrollRef = useRef<HTMLDivElement | null>(null);
 
+  const nextQuizId = quizId ? findNextQuizId(quizId) : undefined;
   const isTextInput = quiz?.subject === 'Japanese';
   const isKanjiWriting = Boolean(quiz?.id.startsWith('kanji-writing'));
 
@@ -319,9 +320,11 @@ function QuestionChallenge() {
               </ul>
             </div>
             <div className="challenge-actions centered">
-              <button className="button" onClick={() => navigate('/progress')} disabled={saveStatus === 'saving'}>
-                進捗を見る
-              </button>
+              {nextQuizId && (
+                <button className="button" onClick={() => navigate(`/challenge/${nextQuizId}`)} disabled={saveStatus === 'saving'}>
+                  次の問題
+                </button>
+              )}
               <button className="button secondary" onClick={retryChallenge}>
                 もう一度挑戦
               </button>

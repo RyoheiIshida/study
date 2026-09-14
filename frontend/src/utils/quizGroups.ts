@@ -91,6 +91,19 @@ export function findGroupById(groupId: string): QuizGroup | undefined {
   return quizGroups.find((group) => group.id === groupId);
 }
 
+/**
+ * 結果画面の「次の問題」で進む先。同じグループで order が次の段階を返す。
+ * タブの最後の段階からは次のタブの最初へ進む。グループ外のクイズや最後の段階では undefined。
+ */
+export function findNextQuizId(quizId: string): string | undefined {
+  const group = findGroupByQuizId(quizId);
+  const current = group?.members.find((member) => member.quizId === quizId);
+  if (!group || !current) return undefined;
+  return group.members
+    .filter((member) => member.order > current.order)
+    .sort((a, b) => a.order - b.order)[0]?.quizId;
+}
+
 const DEFAULT_DIFFICULTY_LABEL = '通常';
 
 export function getDifficultyLabel(quizId: string): string {
