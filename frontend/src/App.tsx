@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigationType } from 'react-router-dom';
+import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigationType, useParams } from 'react-router-dom';
 import QuizList from './pages/QuizList';
 import DifficultySelect from './pages/DifficultySelect';
 import QuestionChallenge from './pages/QuestionChallenge';
@@ -18,6 +18,13 @@ import { fetchPointsSummary } from './api/points';
 import { PointsSummary, XpSummary } from './types';
 import LevelBadge from './components/LevelBadge';
 import PointsBadge from './components/PointsBadge';
+
+// 結果画面の「次の問題」は同じページのままクイズ id だけが変わる。
+// 前のクイズのスコアや保存状態を持ち越さないよう、id が変わったら作り直す。
+function KeyedByQuizId({ page: Page }: { page: () => JSX.Element }) {
+  const { quizId } = useParams();
+  return <Page key={quizId} />;
+}
 
 const NAV_ITEMS = [
   { to: '/', icon: '📝', label: 'クイズ' },
@@ -126,8 +133,8 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<RequireAuth><QuizList /></RequireAuth>} />
           <Route path="/group/:groupId" element={<RequireAuth><DifficultySelect /></RequireAuth>} />
-          <Route path="/challenge/:quizId" element={<RequireAuth><QuestionChallenge /></RequireAuth>} />
-          <Route path="/rhythm/:quizId" element={<RequireAuth><RhythmChallenge /></RequireAuth>} />
+          <Route path="/challenge/:quizId" element={<RequireAuth><KeyedByQuizId page={QuestionChallenge} /></RequireAuth>} />
+          <Route path="/rhythm/:quizId" element={<RequireAuth><KeyedByQuizId page={RhythmChallenge} /></RequireAuth>} />
           <Route path="/progress" element={<RequireAuth><Progress /></RequireAuth>} />
           <Route path="/analytics" element={<RequireAuth><Analytics /></RequireAuth>} />
           <Route path="/profile" element={<RequireAuth><UserProfile /></RequireAuth>} />

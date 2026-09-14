@@ -7,7 +7,8 @@ import { fetchTrophySummary } from '../api/trophies';
 import { saveAnswerSpeedRecords } from '../api/answerSpeed';
 import { AnswerSpeedRecord, LuckyBonus, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
 import { pickSessionQuestions } from '../utils/shuffle';
-import { getDifficultyLabel, getSessionQuestionLimit } from '../utils/quizGroups';
+import { findNextQuizId, getDifficultyLabel, getSessionQuestionLimit } from '../utils/quizGroups';
+import { playPath } from '../utils/playMode';
 import { LaneChoice, buildLaneChoices } from '../utils/answerOptions';
 import { normalizeReading } from '../utils/reading';
 import NoteHighway, { LANE_COLORS } from '../components/NoteHighway';
@@ -84,6 +85,7 @@ const MIN_CALIBRATION_SAMPLES = 4;
 function RhythmChallenge() {
   const { quizId } = useParams();
   const navigate = useNavigate();
+  const nextQuizId = quizId ? findNextQuizId(quizId) : undefined;
 
   const engineRef = useRef<AudioEngine | null>(null);
   if (engineRef.current === null) {
@@ -292,6 +294,14 @@ function RhythmChallenge() {
     if (!window.confirm('音ゲーモードを中止しますか？途中経過は保存されません。')) return;
     engine.stop();
     navigate('/');
+  }
+
+  async function goToNextQuiz() {
+    if (!nextQuizId) return;
+    engine.stop();
+    // 次の段階が音ゲーモードに対応していなければ、通常モードで開く。
+    const next = await fetchQuizById(nextQuizId);
+    navigate(next ? playPath(next, 'rhythm') : `/rhythm/${nextQuizId}`);
   }
 
   function backToReady() {
@@ -604,9 +614,11 @@ function RhythmChallenge() {
           </div>
 
           <div className="challenge-actions centered">
-            <button className="button" onClick={() => navigate('/progress')} disabled={saveStatus === 'saving'}>
-              進捗を見る
-            </button>
+            {nextQuizId && (
+              <button className="button" onClick={goToNextQuiz} disabled={saveStatus === 'saving'}>
+                次の問題
+              </button>
+            )}
             <button className="button secondary" onClick={backToReady}>
               もう一度挑戦
             </button>
