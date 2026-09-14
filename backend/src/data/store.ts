@@ -118,31 +118,11 @@ function buildLinearPairQuiz({ key, focus, values }: LinearPairLevel): Quiz {
 const linearPairQuizzes = linearPairLevels.map(buildLinearPairQuiz);
 
 /**
- * 2択のロング。同じタブ（傾き／切片）の2択の段階をぜんぶ混ぜて、1回のプレイで続けて解く。
- *
- * 短い段階は見比べる2本が決まっているので、2本の見た目を覚えれば解けてしまう。
- * ロングは1問ごとに組が入れかわるため、毎回式を読み直さないと答えられない。
- * 問題数も短い段階（4問）の数倍あり、最後まで集中を切らさないことも求められる。
- * frontend/src/api/quiz.ts にも同じ生成処理がある。問題を変えるときは両方そろえること。
+ * 問題一覧から外したクイズ。seed はクイズを消さないので DB には行が残り、過去のプレイ記録もそこを指している。
+ * 記録を消すと XP やポイントが減ってしまうため、行は残したまま API で返さないようにする。
+ * 2択のロングは、同じクイズを続けて解くと問題数が伸びる仕組み（lib/sessionLength.ts）に置きかえた。
  */
-function buildLinearPairLongQuiz(focus: LinearPairFocus): Quiz {
-  const name = focus === 'slope' ? '傾き' : '切片';
-  const questions = linearPairLevels
-    .filter((level) => level.focus === focus)
-    .flatMap((level) => buildLinearPairQuiz(level).questions)
-    // 短い段階と同じ問題を別のクイズに入れるので、id だけ付け直す（問題 id が主キー）。
-    .map((question, index) => ({ ...question, id: `linear-pair-long-${focus}-${index + 1}` }));
-  return {
-    id: `linear-graph-pair-long-${focus}`,
-    title: `一次関数のグラフ（${name} ロング）`,
-    subject: 'Math',
-    grade: 'Middle School',
-    description: `2択のロングです。${name}の2択の段階をぜんぶ混ぜた${questions.length}問を、続けて解きましょう。`,
-    questions,
-  };
-}
-
-const linearPairLongQuizzes = [buildLinearPairLongQuiz('slope'), buildLinearPairLongQuiz('intercept')];
+export const retiredQuizIds = new Set(['linear-graph-pair-long-slope', 'linear-graph-pair-long-intercept']);
 
 export const defaultQuizzes: Quiz[] = [
   {
@@ -717,7 +697,6 @@ export const defaultQuizzes: Quiz[] = [
     ],
   },
   ...linearPairQuizzes,
-  ...linearPairLongQuizzes,
   {
     id: 'kanji-reading-1',
     title: '漢字の読み ドリル（小学生）',

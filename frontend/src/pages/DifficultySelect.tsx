@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { fetchProgress, fetchQuizzes } from '../api/quiz';
-import { ProgressRecord, Quiz } from '../types';
-import { QuizGroupMember, findGroupById, getSessionQuestionLimit } from '../utils/quizGroups';
+import { fetchSessionLengths } from '../api/sessionLength';
+import { ProgressRecord, Quiz, SessionLength } from '../types';
+import { QuizGroupMember, findGroupById } from '../utils/quizGroups';
+import { MAX_SESSION_QUESTIONS } from '../utils/shuffle';
 import { isRhythmEligible } from '../music/chart';
 import { playPath } from '../utils/playMode';
 import { usePlayMode } from '../hooks/usePlayMode';
@@ -28,13 +30,15 @@ function DifficultySelect() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [progress, setProgress] = useState<ProgressRecord[]>([]);
+  const [sessionLengths, setSessionLengths] = useState<Record<string, SessionLength>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [playMode, setPlayMode] = usePlayMode();
 
   useEffect(() => {
-    Promise.all([fetchQuizzes(), fetchProgress()]).then(([quizData, progressData]) => {
+    Promise.all([fetchQuizzes(), fetchProgress(), fetchSessionLengths()]).then(([quizData, progressData, lengthData]) => {
       setQuizzes(quizData);
       setProgress(progressData);
+      setSessionLengths(lengthData);
       setIsLoading(false);
     });
   }, []);
@@ -112,6 +116,9 @@ function DifficultySelect() {
               {trackLevels.map(({ member, quiz, progress: record, isCleared }, index) => {
                 const choices = choiceCount(quiz);
                 const isNext = quiz.id === nextQuizId;
+                // 同じ段階を続けて解いて上達すると、問題数が伸びる（backend/src/lib/sessionLength.ts）。
+                const length = sessionLengths[quiz.id];
+                const questionCount = length?.questionCount ?? Math.min(quiz.questions.length, MAX_SESSION_QUESTIONS);
                 return (
                   <li
                     key={quiz.id}
@@ -123,7 +130,8 @@ function DifficultySelect() {
                       <span className="level-meta">
                         {quiz.reward && <RewardBadge reward={quiz.reward} />}
                         {choices && <span>{choices}択</span>}
-                        <span>{Math.min(quiz.questions.length, getSessionQuestionLimit(quiz.id))}問</span>
+                        <span>{questionCount}問</span>
+                        {length && length.stage > 0 && <span>長さ {length.stage + 1}/{length.stageCount}</span>}
                         {record && <span>前回 {record.correct}/{record.total}</span>}
                         {isNext && <span className="tag">次はここ</span>}
                         {playMode === 'rhythm' && !isRhythmEligible(quiz) && <span>通常モードのみ</span>}

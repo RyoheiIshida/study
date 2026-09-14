@@ -82,6 +82,26 @@ export interface LuckyBonus {
 /** 保存 API の応答。オフラインで端末に保存したときは抽選していないので luckyBonus がない。 */
 export interface SavedProgress extends ProgressRecord {
   luckyBonus?: LuckyBonus;
+  /** 保存したあとの、次のプレイの問題数。オフラインで端末に保存したときはない。 */
+  sessionLength?: SessionLength;
+}
+
+/**
+ * 1回のプレイで出す問題数（音ゲーモードでは曲の長さ）。同じクイズを続けて解き、正答率が上がると伸びる。
+ * 決め方は backend/src/lib/sessionLength.ts。
+ */
+export interface SessionLength {
+  questionCount: number;
+  /** 今の段階（0 始まり）。 */
+  stage: number;
+  stageCount: number;
+  /** 次の段階の問題数。いちばん長い段階では null。 */
+  nextQuestionCount: number | null;
+  /** 今の段階で数えているプレイ回数。 */
+  recentPlays: number;
+  requiredPlays: number;
+  recentAccuracy: number | null;
+  requiredAccuracy: number;
 }
 
 export interface DailyQuest {

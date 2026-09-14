@@ -8,7 +8,8 @@ import { neonRush, songById } from './songs';
  * 問題データから譜面を自動生成する。
  *
  * 譜面を手書きせず生成にしているのは、このアプリが1プレイごとに問題をシャッフルして
- * 15問を抜き出す（`utils/shuffle.ts`）ため。固定譜面だと問題と噛み合わない。
+ * その人の問題数ぶん抜き出す（`utils/shuffle.ts`）ため。固定譜面だと問題と噛み合わない。
+ * 問題数は同じクイズを続けて解くと伸びるので、曲の長さ（totalBeats）もそれに合わせて伸びる。
  */
 
 export type DifficultyTier = 'easy' | 'normal' | 'hard';
