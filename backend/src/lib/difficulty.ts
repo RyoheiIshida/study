@@ -42,11 +42,13 @@ const QUIZ_TIERS: Record<string, DifficultyTier> = {
   'linear-graph-pair-intercept-3-m3': 'star1',
   'linear-graph-supereasy-slope': 'star1',
   'linear-graph-supereasy-intercept': 'star1',
-  // 一次関数: 2択をぜんぶ混ぜたロングと、傾き／切片だけの4択
-  'linear-graph-pair-long-slope': 'star2',
-  'linear-graph-pair-long-intercept': 'star2',
+  // 一次関数: 傾き／切片だけの4択
   'linear-graph-easy-intercept0': 'star2',
   'linear-graph-easy-slope1': 'star2',
+  // 一次関数: 2択をぜんぶ混ぜたロング。一覧からは外した（data/store.ts の retiredQuizIds）が、
+  // 過去のプレイの XP とポイントが変わらないように残しておく。
+  'linear-graph-pair-long-slope': 'star2',
+  'linear-graph-pair-long-intercept': 'star2',
   // 一次関数: 傾きも切片も読み取る4択
   'linear-graph-1': 'star3',
   // 漢字（読み・書き取りとも入力式）

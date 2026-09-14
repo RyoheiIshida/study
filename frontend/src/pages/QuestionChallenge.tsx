@@ -5,17 +5,19 @@ import { fetchXpSummary } from '../api/xp';
 import { fetchPointsSummary } from '../api/points';
 import { fetchTrophySummary } from '../api/trophies';
 import { saveAnswerSpeedRecords } from '../api/answerSpeed';
-import { AnswerLogEntry, AnswerSpeedRecord, GameState, LuckyBonus, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
+import { fetchSessionLength } from '../api/sessionLength';
+import { AnswerLogEntry, AnswerSpeedRecord, GameState, LuckyBonus, PointsSummary, ProgressRecord, Quiz, SessionLength, TrophySummary, XpSummary } from '../types';
 import ScoreCard from '../components/ScoreCard';
 import LuckyBonusReveal from '../components/LuckyBonusReveal';
 import SecretTrophyUnlock from '../components/SecretTrophyUnlock';
 import PerfectTrophyResult from '../components/PerfectTrophyResult';
 import PointsResult from '../components/PointsResult';
+import SessionLengthNote from '../components/SessionLengthNote';
 import TimerDisplay from '../components/TimerDisplay';
 import LinearGraph from '../components/LinearGraph';
 import { normalizeReading } from '../utils/reading';
 import { pickSessionQuestions } from '../utils/shuffle';
-import { findNextQuizId, getDifficultyLabel, getSessionQuestionLimit } from '../utils/quizGroups';
+import { findNextQuizId, getDifficultyLabel } from '../utils/quizGroups';
 import { buildAnswerOptions, getAnswerValue } from '../utils/answerOptions';
 
 const QUESTION_SECONDS = 30;
@@ -47,6 +49,9 @@ function QuestionChallenge() {
   const [trophiesBefore, setTrophiesBefore] = useState<TrophySummary | null>(null);
   const [trophiesAfter, setTrophiesAfter] = useState<TrophySummary | null>(null);
   const [luckyBonus, setLuckyBonus] = useState<LuckyBonus | null>(null);
+  // このプレイの問題数と、保存したあとの次のプレイの問題数。比べて伸びたかを結果画面に出す。
+  const [sessionLength, setSessionLength] = useState<SessionLength | null>(null);
+  const [nextSessionLength, setNextSessionLength] = useState<SessionLength | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const [answerLog, setAnswerLog] = useState<AnswerLogEntry[]>([]);
   const [awaitingNext, setAwaitingNext] = useState(false);
@@ -63,11 +68,12 @@ function QuestionChallenge() {
 
   useEffect(() => {
     if (!quizId) return;
-    fetchQuizById(quizId).then((result) => {
+    Promise.all([fetchQuizById(quizId), fetchSessionLength(quizId)]).then(([result, length]) => {
       if (!result) {
         navigate('/');
       } else {
-        setQuiz({ ...result, questions: pickSessionQuestions(result.questions, getSessionQuestionLimit(result.id)) });
+        setSessionLength(length);
+        setQuiz({ ...result, questions: pickSessionQuestions(result.questions, length?.questionCount) });
       }
     });
     fetchXpSummary().then(setXpBefore).catch(() => setXpBefore(null));
@@ -86,6 +92,7 @@ function QuestionChallenge() {
     setPointsAfter(null);
     setTrophiesAfter(null);
     setLuckyBonus(null);
+    setNextSessionLength(null);
     setQuiz(null);
     setRetryKey((key) => key + 1);
     setAnswerLog([]);
@@ -214,6 +221,7 @@ function QuestionChallenge() {
       try {
         const saved = await saveProgress(record);
         setLuckyBonus(saved.luckyBonus ?? null);
+        setNextSessionLength(saved.sessionLength ?? null);
         const summary = await fetchXpSummary();
         setXpAfter(summary);
         const pointsSummary = await fetchPointsSummary();
@@ -300,6 +308,7 @@ function QuestionChallenge() {
                 {state.correctCount === quiz.questions.length && (
                   <PerfectTrophyResult quizId={quiz.id} before={trophiesBefore} after={trophiesAfter} />
                 )}
+                <SessionLengthNote before={sessionLength} length={nextSessionLength} />
               </>
             )}
             {saveStatus === 'failed' && <p className="feedback-error" role="alert">進捗を保存できませんでした。API接続を確認してください。</p>}

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { prisma } from '../db.js';
 import { rewardRuleFor } from '../lib/difficulty.js';
+import { retiredQuizIds } from '../data/store.js';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.get('/', asyncHandler(async (req, res) => {
     },
     orderBy: { createdAt: 'desc' },
   });
-  res.json(quizzes.map(withReward));
+  res.json(quizzes.filter((quiz) => !retiredQuizIds.has(quiz.id)).map(withReward));
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
@@ -32,7 +33,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
     },
   });
 
-  if (!quiz) {
+  if (!quiz || retiredQuizIds.has(quiz.id)) {
     res.status(404).json({ message: 'Quiz not found' });
     return;
   }

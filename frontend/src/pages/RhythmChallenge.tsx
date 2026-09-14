@@ -5,9 +5,10 @@ import { fetchXpSummary } from '../api/xp';
 import { fetchPointsSummary } from '../api/points';
 import { fetchTrophySummary } from '../api/trophies';
 import { saveAnswerSpeedRecords } from '../api/answerSpeed';
-import { AnswerSpeedRecord, LuckyBonus, PointsSummary, ProgressRecord, Quiz, TrophySummary, XpSummary } from '../types';
+import { fetchSessionLength } from '../api/sessionLength';
+import { AnswerSpeedRecord, LuckyBonus, PointsSummary, ProgressRecord, Quiz, SessionLength, TrophySummary, XpSummary } from '../types';
 import { pickSessionQuestions } from '../utils/shuffle';
-import { findNextQuizId, getDifficultyLabel, getSessionQuestionLimit } from '../utils/quizGroups';
+import { findNextQuizId, getDifficultyLabel } from '../utils/quizGroups';
 import { playPath } from '../utils/playMode';
 import { LaneChoice, buildLaneChoices } from '../utils/answerOptions';
 import { normalizeReading } from '../utils/reading';
@@ -17,6 +18,7 @@ import SecretTrophyUnlock from '../components/SecretTrophyUnlock';
 import PerfectTrophyResult from '../components/PerfectTrophyResult';
 import PointsResult from '../components/PointsResult';
 import LuckyBonusReveal from '../components/LuckyBonusReveal';
+import SessionLengthNote from '../components/SessionLengthNote';
 import { AudioEngine } from '../music/engine';
 import {
   DIFFICULTY_TIERS,
@@ -94,6 +96,11 @@ function RhythmChallenge() {
   const engine = engineRef.current;
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
+  /** 抜き出す前の全問。「もう一度挑戦」で問題数が伸びていたら、ここから選び直す。 */
+  const fullQuizRef = useRef<Quiz | null>(null);
+  // このプレイの問題数と、保存したあとの次のプレイの問題数。問題数が伸びると曲も長くなる。
+  const [sessionLength, setSessionLength] = useState<SessionLength | null>(null);
+  const [nextSessionLength, setNextSessionLength] = useState<SessionLength | null>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [tier, setTier] = useState<DifficultyTier>('normal');
   /** プレイヤーが選んだ曲の id。null なら難易度から決まる既定の曲を鳴らす。 */
@@ -133,13 +140,16 @@ function RhythmChallenge() {
   useEffect(() => {
     if (!quizId) return;
     let cancelled = false;
-    fetchQuizById(quizId).then((result) => {
+    Promise.all([fetchQuizById(quizId), fetchSessionLength(quizId)]).then(([result, length]) => {
       if (cancelled) return;
       if (!result) {
         navigate('/');
         return;
       }
-      setQuiz({ ...result, questions: pickSessionQuestions(result.questions, getSessionQuestionLimit(result.id)) });
+      fullQuizRef.current = result;
+      setSessionLength(length);
+      setNextSessionLength(null);
+      setQuiz({ ...result, questions: pickSessionQuestions(result.questions, length?.questionCount) });
       setTier(defaultTierForQuiz(result));
       // クイズが変われば既定の曲も変わる。前のクイズで選んだ曲は持ち越さない。
       setSongId(null);
@@ -306,6 +316,13 @@ function RhythmChallenge() {
 
   function backToReady() {
     engine.stop();
+    // 今回のプレイで問題数が変わっていれば、次の譜面はその問題数で作り直す。
+    const fullQuiz = fullQuizRef.current;
+    if (fullQuiz && nextSessionLength) {
+      setSessionLength(nextSessionLength);
+      setNextSessionLength(null);
+      setQuiz({ ...fullQuiz, questions: pickSessionQuestions(fullQuiz.questions, nextSessionLength.questionCount) });
+    }
     setPhase('ready');
     setSaveStatus('idle');
   }
@@ -384,6 +401,7 @@ function RhythmChallenge() {
       try {
         const saved = await saveProgress(record);
         setLuckyBonus(saved.luckyBonus ?? null);
+        setNextSessionLength(saved.sessionLength ?? null);
         setXpAfter(await fetchXpSummary());
         setPointsAfter(await fetchPointsSummary());
         setTrophiesAfter(await fetchTrophySummary());
@@ -565,6 +583,7 @@ function RhythmChallenge() {
               {correctCount === quiz.questions.length && (
                 <PerfectTrophyResult quizId={quiz.id} before={trophiesBefore} after={trophiesAfter} />
               )}
+              <SessionLengthNote before={sessionLength} length={nextSessionLength} rhythm />
             </>
           )}
           {saveStatus === 'failed' && <p className="feedback-error" role="alert">進捗を保存できませんでした。API接続を確認してください。</p>}
@@ -640,6 +659,8 @@ function RhythmChallenge() {
           <h3>♪ {song.title}</h3>
           <p className="hint">{song.mood} ・ BPM {song.bpm} ・ 全{quiz.questions.length}問 ・ 1問 約{secondsPerQuestion}秒</p>
         </div>
+
+        <SessionLengthNote length={sessionLength} rhythm />
 
         {/* 選べる曲が1つしかないときは、ボタンが1つだけ並んでも意味がないので行ごと出さない。 */}
         {songs.length > 1 && (
